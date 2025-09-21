@@ -11,15 +11,17 @@ struct GameView: View {
             let rocketPosition = CGPoint(x: geometry.size.width * 0.5, y: geometry.size.height * 0.3)
             
             ZStack {
-                // Astronaut on rocket
-                AstronautRocketView(
-                    isFlying: gameModel.isFlying,
-                    jumpPressed: gameModel.jumpPressed,
-                    flightTime: gameModel.flightTime,
-                    explosionTime: gameModel.explosionTime,
-                    gameState: gameModel.gameState,
-                    animationProgress: gameModel.animationProgress
-                )
+                // Astronaut on rocket - приховуємо під час вибуху
+                if gameModel.gameState != .exploding {
+                    AstronautRocketView(
+                        isFlying: gameModel.isFlying,
+                        jumpPressed: gameModel.jumpPressed,
+                        flightTime: gameModel.flightTime,
+                        explosionTime: gameModel.explosionTime,
+                        gameState: gameModel.gameState,
+                        animationProgress: gameModel.animationProgress
+                    )
+                }
                 
                 // UI елементи
                 VStack {
@@ -74,12 +76,12 @@ struct GameView: View {
                         .padding(.bottom, 50)
                     }
                     
-                    // Показуємо детонацію коли час сплив
-                    if gameModel.gameState == .playing && !gameModel.isFlying {
-                        let _ = print("🔥 ДЕТОНАЦІЯ БЛОК: gameState=\(gameModel.gameState), isFlying=\(gameModel.isFlying)")
+                    // Показуємо детонацію коли час сплив, але користувач НЕ натискав стрибок
+                    if gameModel.gameState == .playing && !gameModel.isFlying && !gameModel.jumpPressed {
+                        let _ = print("🔥 ДЕТОНАЦІЯ БЛОК: gameState=\(gameModel.gameState), isFlying=\(gameModel.isFlying), jumpPressed=\(gameModel.jumpPressed)")
                         VStack(spacing: 20) {
                             // Головний текст детонації з анімацією
-                            Text("💥 ДЕТОНАЦІЯ! 💥")
+                            Text("💥 DETONATION! 💥")
                                 .font(.system(size: 36, weight: .black, design: .rounded))
                                 .foregroundColor(.red)
                                 .shadow(color: .orange, radius: 10)
@@ -90,19 +92,11 @@ struct GameView: View {
                                 }
                             
                             // Підтекст з пульсацією
-                            Text("Час сплив!")
+                            Text("Time's up!")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundColor(.orange)
                                 .opacity(explosionScale > 1.0 ? 0.7 : 1.0)
                                 .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: explosionScale)
-                            
-                            // Ефект радіації
-                            Circle()
-                                .stroke(Color.red, lineWidth: 3)
-                                .frame(width: 100, height: 100)
-                                .scaleEffect(explosionScale * 1.5)
-                                .opacity(2.0 - explosionScale)
-                                .animation(.easeOut(duration: 0.8).repeatForever(autoreverses: false), value: explosionScale)
                         }
                         .padding(.bottom, 50)
                     }
@@ -144,19 +138,7 @@ struct AstronautRocketView: View {
     private func logPositions(_ context: String) {
         let screenHeight = UIScreen.main.bounds.height
         let basePosition = screenHeight * 0.3
-        let pilotScreenPos = basePosition + gameModel.pilotY
-        
-        print("📍 \(context)")
-        print("   🚀 Rocket - Rotation: \(gameModel.rocketRotation) (Position: FIXED at \(basePosition))")
-        print("   👨‍🚀 Pilot - Y Offset: \(gameModel.pilotY), Rotation: \(gameModel.pilotRotation)")
-        print("   🎯 Jump State: \(gameModel.isJumping), Fall State: \(gameModel.isFalling)")
-        print("   🎮 Game State: \(gameState)")
-        print("   ⏱️ Animation Progress: \(animationProgress)")
-        print("   📐 Screen Height: \(screenHeight)")
-        print("   📐 Base Position: \(basePosition)")
-        print("   📐 Pilot Screen Position: \(pilotScreenPos)")
-        print("   📐 Pilot Off Screen: \(pilotScreenPos > screenHeight ? "YES" : "NO")")
-        print("   ─────────────────────────────────────")
+       
     }
     
     var body: some View {
@@ -173,7 +155,7 @@ struct AstronautRocketView: View {
                 Text("👨‍🚀")
                     .font(.custom("Digitalt", size: 40))
                     .rotationEffect(.degrees(gameModel.pilotRotation))
-                    .position(x: geometry.size.width * 0.5, y: pilotScreenPosition)
+                    .position(x: geometry.size.width * 0.5, y: pilotScreenPosition - 25)
                     .zIndex(2) // Пілот спереду
             }
             .onAppear {

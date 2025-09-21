@@ -5,6 +5,7 @@ struct HighScorePopupView: View {
     @Binding var isPresented: Bool
     @State private var playerName: String = ""
     @State private var showError: Bool = false
+    let onScoreSaved: (() -> Void)?
     
     private var currentScore: Int {
         gameModel.score
@@ -193,6 +194,9 @@ struct HighScorePopupView: View {
             levelTitle: currentLevelTitle
         )
         
+        // Call callback to notify parent
+        onScoreSaved?()
+        
         // Dismiss popup
         isPresented = false
     }
@@ -200,7 +204,8 @@ struct HighScorePopupView: View {
 
 #Preview {
     HighScorePopupView(
-        isPresented: .constant(true)
+        isPresented: .constant(true),
+        onScoreSaved: nil
     )
     .environmentObject(GameModel())
 }

@@ -267,7 +267,7 @@ class GameModel: ObservableObject {
         print("🚀 Jump successful!")
         
         // Завершуємо гру після успішного стрибка
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.endGame()
         }
     }
@@ -328,9 +328,9 @@ class GameModel: ObservableObject {
         isJumping = true
         
         // Плавна анімація стрибка - пілот піднімається трохи вище з базової позиції
-        withAnimation(.easeOut(duration: 0.8)) {
-            pilotY = -50  // Піднімаємо пілота над ракетою
-            pilotRotation = pilotRotation + 360
+        withAnimation(.easeOut(duration: 1.5)) {
+            pilotY = UIScreen.main.bounds.height  // Пілот падає ЗА МЕЖІ ЕКРАНУ
+            pilotRotation = pilotRotation + 45  // Ледве обертається
         }
     }
     
@@ -401,14 +401,18 @@ class GameModel: ObservableObject {
             return  // Виходимо одразу, не збільшуємо час
         }
         
-        flightTime += 0.1
-        
-        // Максимальний час польоту - якщо пілот не стрибнув до максимального часу
-        if flightTime >= maxFlightTime && isFlying {
-            isFlying = false
-            print("⏰ Max flight time reached! Starting explosion animation")
-            startFallingAnimation()
-            return
+        // Збільшуємо час тільки якщо ракета ще летить
+        if isFlying {
+            flightTime += 0.1
+            
+            // Максимальний час польоту - якщо пілот не стрибнув до максимального часу
+            if flightTime >= maxFlightTime {
+                isFlying = false
+                print("⏰ Max flight time reached! Starting explosion animation")
+                print("🔍 DEBUG: gameState=\(gameState), isFlying=\(isFlying)")
+                startFallingAnimation()
+                return
+            }
         }
     }
     

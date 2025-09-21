@@ -5,6 +5,7 @@ struct GameOverView: View {
     @EnvironmentObject var gameModel: GameModel
     @State private var showCelebration = false
     @State private var showHighScorePopup = false
+    @State private var hasSavedScore = false
     
     private var isSuccess: Bool {
         gameModel.jumpPressed && gameModel.flightTime < gameModel.explosionTime
@@ -82,8 +83,8 @@ struct GameOverView: View {
             
             // Action buttons
             VStack(spacing: 15) {
-                // Top 10 Score Button
-                if isTop10Score {
+                // Top 10 Score Button - показується тільки коли виграв і ще не зберіг
+                if isSuccess && isTop10Score && !hasSavedScore {
                     Button(action: {
                         showHighScorePopup = true
                     }) {
@@ -155,7 +156,10 @@ struct GameOverView: View {
             Group {
                 if showHighScorePopup {
                     HighScorePopupView(
-                        isPresented: $showHighScorePopup
+                        isPresented: $showHighScorePopup,
+                        onScoreSaved: {
+                            hasSavedScore = true
+                        }
                     )
                 }
             }
