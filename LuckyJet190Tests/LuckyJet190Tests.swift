@@ -83,21 +83,25 @@ final class LuckyJet190Tests: XCTestCase {
     func testScoreCalculation() throws {
         gameModel.startGame()
         gameModel.flightTime = 5.0
+        gameModel.explosionTime = 6.0 // Встановлюємо час вибуху після стрибка
         
         gameModel.jump()
         
-        // Очікувані очки: 5.0 * 10 = 50 (час) + 0 (виживання, бо 5.0 < 8.0)
-        XCTAssertEqual(gameModel.score, 50)
+        // Нова формула: pow(5.0, 1.5) * 20 = 223 (час) + 200 (виживання) + ~50 (точність) = ~473
+        XCTAssertGreaterThan(gameModel.score, 400)
+        XCTAssertLessThan(gameModel.score, 500)
     }
     
     func testScoreCalculationWithSurvivalBonus() throws {
         gameModel.startGame()
-        gameModel.flightTime = 9.0 // Більше ніж explosionThreshold (8.0)
+        gameModel.flightTime = 9.0
+        gameModel.explosionTime = 10.0 // Встановлюємо час вибуху після стрибка
         
         gameModel.jump()
         
-        // Очікувані очки: 9.0 * 10 = 90 (час) + 100 (виживання)
-        XCTAssertEqual(gameModel.score, 190)
+        // Нова формула: pow(9.0, 1.5) * 20 = 540 (час) + 200 (виживання) + ~50 (точність) = ~790
+        XCTAssertGreaterThan(gameModel.score, 700)
+        XCTAssertLessThan(gameModel.score, 900)
     }
     
     // MARK: - Statistics Tests

@@ -189,10 +189,39 @@ class GameModel: ObservableObject {
         isFlying = false
         totalJumps += 1
         
-        // Розрахунок очок на основі часу польоту
-        let timeBonus = Int(flightTime * 10)
-        let survivalBonus = flightTime > explosionThreshold ? 100 : 0
-        score += timeBonus + survivalBonus
+        // Покращена система розрахунку очок
+        let isSuccess = flightTime < explosionTime
+        
+        // Базові бали за час польоту (квадратична залежність для більших балів)
+        let timeBonus = Int(pow(flightTime, 1.5) * 20)
+        
+        // Бонус за успішне приземлення
+        let survivalBonus = isSuccess ? 200 : 0
+        
+        // Бонус за точність (чим ближче до вибуху, тим більше балів)
+        let precisionBonus: Int
+        if isSuccess {
+            let timeToExplosion = explosionTime - flightTime
+            precisionBonus = max(0, Int(50 - timeToExplosion * 10)) // До 50 додаткових балів
+        } else {
+            precisionBonus = 0
+        }
+        
+        // Бонус за рівень складності
+        let levelBonus: Int
+        if let currentLevel = currentLevel {
+            switch currentLevel.difficulty {
+            case .easy: levelBonus = 0
+            case .medium: levelBonus = 100
+            case .hard: levelBonus = 300
+            case .expert: levelBonus = 600
+            case .master: levelBonus = 1000
+            }
+        } else {
+            levelBonus = 0
+        }
+        
+        score = timeBonus + survivalBonus + precisionBonus + levelBonus
         
         if flightTime > longestFlight {
             longestFlight = flightTime
@@ -203,7 +232,6 @@ class GameModel: ObservableObject {
         }
         
         // Check jump-related achievements
-        let isSuccess = flightTime < explosionTime
         checkJumpAchievements(flightTime: flightTime, explosionTime: explosionTime, isSuccess: isSuccess)
         checkAchievements()
         
