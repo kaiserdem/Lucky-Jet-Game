@@ -186,6 +186,7 @@ class GameModel: ObservableObject {
         UserDefaults.standard.set(lateJumps, forKey: "lateJumps")
         UserDefaults.standard.set(consecutiveExplosions, forKey: "consecutiveExplosions")
         UserDefaults.standard.set(consecutivePerfectTiming, forKey: "consecutivePerfectTiming")
+        UserDefaults.standard.synchronize()
     }
     
     private func loadStatistics() {
@@ -278,12 +279,32 @@ class GameModel: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "unlockedAchievements"),
            let unlocked = try? JSONDecoder().decode(Set<String>.self, from: data) {
             unlockedAchievements = unlocked
+            print("📂 Loaded achievements: \(unlockedAchievements)")
+            
+            // Update achievement states based on loaded data
+            for i in 0..<achievements.count {
+                if unlockedAchievements.contains(achievements[i].id) {
+                    achievements[i] = Achievement(
+                        id: achievements[i].id,
+                        title: achievements[i].title,
+                        description: achievements[i].description,
+                        icon: achievements[i].icon,
+                        isUnlocked: true
+                    )
+                }
+            }
+        } else {
+            print("📂 No saved achievements found, starting fresh")
         }
     }
     
     private func saveAchievements() {
         if let data = try? JSONEncoder().encode(unlockedAchievements) {
             UserDefaults.standard.set(data, forKey: "unlockedAchievements")
+            UserDefaults.standard.synchronize()
+            print("💾 Saved achievements: \(unlockedAchievements)")
+        } else {
+            print("❌ Failed to save achievements")
         }
     }
     
@@ -390,6 +411,8 @@ class GameModel: ObservableObject {
     private func unlockAchievement(_ id: String) {
         unlockedAchievements.insert(id)
         saveAchievements()
+        
+        print("🎉 Unlocked achievement: \(id)")
         
         // Find and update the achievement
         if let index = achievements.firstIndex(where: { $0.id == id }) {
