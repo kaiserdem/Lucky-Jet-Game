@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HighScorePopupView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @Binding var isPresented: Bool
     @State private var playerName: String = ""
     @State private var showError: Bool = false
@@ -200,7 +200,7 @@ struct HighScorePopupView: View {
 
 #Preview {
     HighScorePopupView(
-        gameModel: GameModel(),
         isPresented: .constant(true)
     )
+    .environmentObject(GameModel())
 }

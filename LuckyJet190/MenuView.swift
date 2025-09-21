@@ -4,7 +4,7 @@ import SwiftUI
 import SwiftUI
 
 struct MenuView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @State private var showAchievements = false
     @State private var showLevels = false
     @State private var showHighScores = false
@@ -156,13 +156,13 @@ struct MenuView: View {
         }
         .padding()
         .sheet(isPresented: $showAchievements) {
-            AchievementView(gameModel: gameModel)
+            AchievementView()
         }
         .sheet(isPresented: $showLevels) {
-            LevelSelectionView(gameModel: gameModel)
+            LevelSelectionView()
         }
         .sheet(isPresented: $showHighScores) {
-            HighScoresView(gameModel: gameModel)
+            HighScoresView()
         }
     }
 }

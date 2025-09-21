@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct GameOverView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @State private var showCelebration = false
     @State private var showHighScorePopup = false
     
@@ -155,7 +155,6 @@ struct GameOverView: View {
             Group {
                 if showHighScorePopup {
                     HighScorePopupView(
-                        gameModel: gameModel,
                         isPresented: $showHighScorePopup
                     )
                 }

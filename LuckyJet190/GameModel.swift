@@ -89,6 +89,8 @@ enum GameState {
     case menu
     case levelSelection
     case playing
+    case falling  // Новий стан для анімації падіння
+    case exploding  // Новий стан для анімації вибуху
     case gameOver
 }
 
@@ -133,7 +135,20 @@ class GameModel: ObservableObject {
     // High Scores
     @Published var highScores: [HighScore] = []
     
+    // Animation states
+    @Published var isAnimating: Bool = false
+    @Published var animationProgress: Double = 0.0
+    
+    // Rocket animation states
+    @Published var rocketRotation: Double = 0.0
+    @Published var pilotY: CGFloat = 0.0
+    @Published var pilotRotation: Double = 0.0
+    @Published var isJumping: Bool = false
+    @Published var isFalling: Bool = false
+    @Published var hasStartedRocketAnimation: Bool = false
+    
     private var gameTimer: Timer?
+    private var animationTimer: Timer?
     private var consecutiveJumps: Int = 0
     private var lastJumpTime: Double = 0.0
     private var lastJumpWasPerfect: Bool = false
@@ -147,6 +162,9 @@ class GameModel: ObservableObject {
     
     // MARK: - Game Control
     func startGame() {
+        // Reset animation states before starting
+        resetAnimationStates()
+        
         // Знаходимо максимальний доступний рівень
         if let maxLevel = getMaxUnlockedLevel() {
             startLevel(maxLevel)
@@ -189,7 +207,7 @@ class GameModel: ObservableObject {
         isFlying = false
         totalJumps += 1
         
-        // Покращена система розрахунку очок
+        // Розраховуємо результат
         let isSuccess = flightTime < explosionTime
         
         // Базові бали за час польоту (квадратична залежність для більших балів)
@@ -236,7 +254,13 @@ class GameModel: ObservableObject {
         checkAchievements()
         
         saveStatistics()
-        endGame()
+        
+        // Викликаємо анімацію стрибка
+        performJumpAnimation()
+        
+        // Запускаємо анімацію падіння після стрибка
+        print("🚀 Jump pressed, starting falling animation")
+        startFallingAnimation()
     }
     
     func endGame() {
@@ -263,6 +287,78 @@ class GameModel: ObservableObject {
         isFlying = false
         jumpPressed = false
         explosionTime = 0.0
+        
+        // Reset animation states
+        resetAnimationStates()
+    }
+    
+    func resetAnimationStates() {
+        rocketRotation = 0.0
+        pilotY = 0.0
+        pilotRotation = 0.0
+        isJumping = false
+        isFalling = false
+        hasStartedRocketAnimation = false
+        isAnimating = false
+        animationProgress = 0.0
+    }
+    
+    func startRocketAnimation() {
+        guard !hasStartedRocketAnimation else { return }
+        hasStartedRocketAnimation = true
+        
+        // Плавна анімація підйому пілота
+        withAnimation(.easeInOut(duration: 0.5)) {
+            pilotY = -50
+        }
+        
+        // Постійне тремтіння ракети
+        withAnimation(.easeInOut(duration: 0.1).repeatForever(autoreverses: true)) {
+            rocketRotation = 2
+        }
+    }
+    
+    func performJumpAnimation() {
+        guard !isJumping else { return }
+        isJumping = true
+        
+        // Плавна анімація стрибка - пілот піднімається вище
+        withAnimation(.easeOut(duration: 0.8)) {
+            pilotY = pilotY - 150
+            pilotRotation = pilotRotation + 360
+        }
+    }
+    
+    func performFallingAnimation() {
+        guard !isFalling else { return }
+        isFalling = true
+        
+        // Пілот падає за межі екрану (використовуємо висоту екрану)
+        let screenHeight = UIScreen.main.bounds.height
+        let fallDistance: CGFloat = screenHeight + 200 // Падає за межі екрану + додаткові 200 пікселів
+        
+        // Плавна анімація падіння
+        withAnimation(.easeIn(duration: 1.5)) {
+            pilotY = pilotY + fallDistance
+            pilotRotation = pilotRotation + 720
+        }
+    }
+    
+    func performExplosionAnimation() {
+        // Пілот продовжує плавно падати за межі екрану
+        let screenHeight = UIScreen.main.bounds.height
+        let explosionDistance: CGFloat = screenHeight + 100 // Додаткове падіння за межі екрану
+        
+        // Плавна анімація продовження падіння
+        withAnimation(.easeIn(duration: 2.0)) {
+            pilotY = pilotY + explosionDistance
+            pilotRotation = pilotRotation + 360
+        }
+        
+        // Ракета вибухає (тільки обертання)
+        withAnimation(.easeIn(duration: 2.0)) {
+            rocketRotation = rocketRotation + 720
+        }
     }
     
     func goToLevelSelection() {
@@ -270,6 +366,9 @@ class GameModel: ObservableObject {
     }
     
     func startLevel(_ level: Level) {
+        // Reset animation states before starting
+        resetAnimationStates()
+        
         currentLevel = level
         gameState = .playing
         score = 0
@@ -303,16 +402,18 @@ class GameModel: ObservableObject {
         
         flightTime += 0.1
         
-        // Перевірка на вибух
+        // Перевірка на вибух - якщо пілот не стрибнув до часу вибуху
         if flightTime >= explosionTime && isFlying {
             isFlying = false
-            endGame()
+            print("💥 Time's up! Starting explosion animation")
+            startFallingAnimation()
         }
         
-        // Максимальний час польоту
+        // Максимальний час польоту - якщо пілот не стрибнув до максимального часу
         if flightTime >= maxFlightTime && isFlying {
             isFlying = false
-            endGame()
+            print("⏰ Max flight time reached! Starting explosion animation")
+            startFallingAnimation()
         }
     }
     
@@ -740,6 +841,54 @@ class GameModel: ObservableObject {
                 unlockLevel(level.id)
             }
         }
+    }
+    
+    // MARK: - Animation Management
+    private func startFallingAnimation() {
+        print("🎬 Starting falling animation")
+        gameState = .falling
+        isAnimating = true
+        animationProgress = 0.0
+        
+        // Викликаємо анімацію падіння
+        performFallingAnimation()
+        
+        // Анімація падіння триває 1.5 секунди
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
+            self.animationProgress += 0.016 / 1.5
+            
+            if self.animationProgress >= 1.0 {
+                timer.invalidate()
+                print("🎬 Falling animation completed, starting explosion")
+                self.startExplosionAnimation()
+            }
+        }
+    }
+    
+    private func startExplosionAnimation() {
+        print("💥 Starting explosion animation")
+        gameState = .exploding
+        animationProgress = 0.0
+        
+        // Викликаємо анімацію вибуху
+        performExplosionAnimation()
+        
+        // Анімація вибуху триває 2 секунди
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
+            self.animationProgress += 0.016 / 2.0
+            
+            if self.animationProgress >= 1.0 {
+                timer.invalidate()
+                print("💥 Explosion animation completed, finishing")
+                self.finishAnimation()
+            }
+        }
+    }
+    
+    private func finishAnimation() {
+        isAnimating = false
+        animationProgress = 0.0
+        endGame()
     }
     
     // MARK: - High Scores Management

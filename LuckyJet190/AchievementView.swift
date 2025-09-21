@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AchievementView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -173,5 +173,6 @@ struct AchievementRow: View {
 }
 
 #Preview {
-    AchievementView(gameModel: GameModel())
+    AchievementView()
+        .environmentObject(GameModel())
 }

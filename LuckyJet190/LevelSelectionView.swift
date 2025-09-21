@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LevelSelectionView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -107,7 +107,7 @@ struct LevelSelectionView: View {
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(gameModel.levels) { level in
-                            LevelRow(level: level, gameModel: gameModel)
+                            LevelRow(level: level)
                         }
                     }
                     .padding(.horizontal)
@@ -119,7 +119,7 @@ struct LevelSelectionView: View {
 
 struct LevelRow: View {
     let level: Level
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     
     var body: some View {
         HStack(spacing: 15) {
@@ -192,5 +192,6 @@ struct LevelRow: View {
 }
 
 #Preview {
-    LevelSelectionView(gameModel: GameModel())
+    LevelSelectionView()
+        .environmentObject(GameModel())
 }

@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct GameView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @State private var rocketOffset: CGFloat = 0
     @State private var explosionScale: CGFloat = 0
     
@@ -14,7 +14,9 @@ struct GameView: View {
                     isFlying: gameModel.isFlying,
                     jumpPressed: gameModel.jumpPressed,
                     flightTime: gameModel.flightTime,
-                    explosionTime: gameModel.explosionTime
+                    explosionTime: gameModel.explosionTime,
+                    gameState: gameModel.gameState,
+                    animationProgress: gameModel.animationProgress
                 )
                 
                 // UI елементи
@@ -69,7 +71,7 @@ struct GameView: View {
                 }
                 
                 // Ефект вибуху
-                if !gameModel.isFlying && !gameModel.jumpPressed {
+                if gameModel.gameState == .exploding {
                     ExplosionEffect()
                         .scaleEffect(explosionScale)
                         .opacity(explosionScale > 0 ? 1 : 0)
@@ -89,73 +91,73 @@ struct AstronautRocketView: View {
     let jumpPressed: Bool
     let flightTime: Double
     let explosionTime: Double
+    let gameState: GameState
+    let animationProgress: Double
     
-    @State private var rocketY: CGFloat = 0
-    @State private var rocketRotation: Double = 0
+    @EnvironmentObject var gameModel: GameModel
+    
+    // Computed property для позиції пілота
+    private var pilotScreenPosition: CGFloat {
+        UIScreen.main.bounds.height * 0.3 + gameModel.pilotY
+    }
+    
+    // Функція для логування позицій
+    private func logPositions(_ context: String) {
+        let screenHeight = UIScreen.main.bounds.height
+        let basePosition = screenHeight * 0.3
+        let pilotScreenPos = basePosition + gameModel.pilotY
+        
+        print("📍 \(context)")
+        print("   🚀 Rocket - Rotation: \(gameModel.rocketRotation) (Position: FIXED at \(basePosition))")
+        print("   👨‍🚀 Pilot - Y Offset: \(gameModel.pilotY), Rotation: \(gameModel.pilotRotation)")
+        print("   🎯 Jump State: \(gameModel.isJumping), Fall State: \(gameModel.isFalling)")
+        print("   🎮 Game State: \(gameState)")
+        print("   ⏱️ Animation Progress: \(animationProgress)")
+        print("   📐 Screen Height: \(screenHeight)")
+        print("   📐 Base Position: \(basePosition)")
+        print("   📐 Pilot Screen Position: \(pilotScreenPos)")
+        print("   📐 Pilot Off Screen: \(pilotScreenPos > screenHeight ? "YES" : "NO")")
+        print("   ─────────────────────────────────────")
+    }
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 // Ракета
-                VStack(spacing: 0) {
-                    // Космонавт
-                    Text("👨‍🚀")
-                        .font(.custom("Digitalt", size: 40))
-                        .rotationEffect(.degrees(rocketRotation))
-                    
-                    // Ракета
-                    Text("🚀")
-                        .font(.custom("Digitalt", size: 60))
-                        .rotationEffect(.degrees(rocketRotation))
+                Text("🚀")
+                    .font(.custom("Digitalt", size: 60))
+                    .rotationEffect(.degrees(gameModel.rocketRotation))
+                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.3)
+                    .zIndex(1) // Ракета ззаду
+                
+                // Космонавт (окремо від ракети)
+                Text("👨‍🚀")
+                    .font(.custom("Digitalt", size: 40))
+                    .rotationEffect(.degrees(gameModel.pilotRotation))
+                    .position(x: geometry.size.width * 0.5, y: pilotScreenPosition)
+                    .zIndex(2) // Пілот спереду
+            }
+            .onAppear {
+                if !gameModel.hasStartedRocketAnimation {
+                    logPositions("🚀 View Appeared - Starting Rocket Animation")
+                    gameModel.startRocketAnimation()
+                } else {
+                    logPositions("🚀 View Appeared - Rocket Animation Already Started")
                 }
-                .position(
-                    x: geometry.size.width * 0.5,
-                    y: geometry.size.height * 0.3 + rocketY
-                )
-                .onAppear {
-                    startRocketAnimation()
+            }
+            .onChange(of: jumpPressed) { jumped in
+                if jumped {
+                    logPositions("🎯 Jump Button Pressed - Before Animation")
+                    // Анімація стрибка тепер викликається з GameModel
                 }
-                .onChange(of: jumpPressed) { jumped in
-                    if jumped {
-                        performJumpAnimation()
-                    }
-                }
-                .onChange(of: isFlying) { flying in
-                    if !flying && !jumpPressed {
-                        performExplosionAnimation()
-                    }
-                }
+            }
+            .onChange(of: gameState) { state in
+                logPositions("🎮 Game State Changed to: \(state)")
+                // Анімації тепер керуються з GameModel
             }
         }
     }
     
-    private func startRocketAnimation() {
-        // Анімація підйому ракети
-        withAnimation(.easeInOut(duration: 0.5)) {
-            rocketY = -50
-        }
-        
-        // Постійне тремтіння ракети
-        withAnimation(.easeInOut(duration: 0.1).repeatForever(autoreverses: true)) {
-            rocketRotation = 2
-        }
-    }
-    
-    private func performJumpAnimation() {
-        // Анімація стрибка
-        withAnimation(.easeOut(duration: 1.0)) {
-            rocketY = -200
-            rocketRotation = 360
-        }
-    }
-    
-    private func performExplosionAnimation() {
-        // Анімація вибуху
-        withAnimation(.easeIn(duration: 0.3)) {
-            rocketY = 100
-            rocketRotation = 180
-        }
-    }
 }
 
 struct DangerIndicator: View {

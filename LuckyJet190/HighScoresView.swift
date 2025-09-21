@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HighScoresView: View {
-    @ObservedObject var gameModel: GameModel
+    @EnvironmentObject var gameModel: GameModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -219,5 +219,6 @@ struct HighScoreRow: View {
 }
 
 #Preview {
-    HighScoresView(gameModel: GameModel())
+    HighScoresView()
+        .environmentObject(GameModel())
 }

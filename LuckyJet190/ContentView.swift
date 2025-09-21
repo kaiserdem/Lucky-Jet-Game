@@ -12,17 +12,22 @@ struct ContentView: View {
                 
                 switch gameModel.gameState {
                 case .menu:
-                    MenuView(gameModel: gameModel)
+                    MenuView()
                 case .levelSelection:
-                    LevelSelectionView(gameModel: gameModel)
+                    LevelSelectionView()
                 case .playing:
-                    GameView(gameModel: gameModel)
+                    GameView()
+                case .falling:
+                    GameView()  // Показуємо GameView під час анімації падіння
+                case .exploding:
+                    GameView()  // Показуємо GameView під час анімації вибуху
                 case .gameOver:
-                    GameOverView(gameModel: gameModel)
+                    GameOverView()
                 }
             }
         }
         .ignoresSafeArea()
+        .environmentObject(gameModel)  // Додаємо gameModel до environment
     }
 }
 
