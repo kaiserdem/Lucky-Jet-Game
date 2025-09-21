@@ -22,6 +22,17 @@ struct GameView: View {
                     // Верхня панель з інформацією
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
+                            // Level info
+                            if let currentLevel = gameModel.currentLevel {
+                                HStack {
+                                    Text(currentLevel.icon)
+                                        .font(.custom("Digitalt", size: 20))
+                                    Text("Level \(currentLevel.title)")
+                                        .font(.custom("Digitalt", size: 16))
+                                        .foregroundColor(currentLevel.difficulty.color)
+                                }
+                            }
+                            
                             Text("Score: \(gameModel.score)")
                                 .font(.custom("Digitalt", size: 18))
                                 .foregroundColor(.white)

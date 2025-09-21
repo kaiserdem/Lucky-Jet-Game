@@ -13,6 +13,8 @@ struct ContentView: View {
                 switch gameModel.gameState {
                 case .menu:
                     MenuView(gameModel: gameModel)
+                case .levelSelection:
+                    LevelSelectionView(gameModel: gameModel)
                 case .playing:
                     GameView(gameModel: gameModel)
                 case .gameOver:

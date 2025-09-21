@@ -4,9 +4,14 @@ import SwiftUI
 struct GameOverView: View {
     @ObservedObject var gameModel: GameModel
     @State private var showCelebration = false
+    @State private var showHighScorePopup = false
     
     private var isSuccess: Bool {
         gameModel.jumpPressed && gameModel.flightTime < gameModel.explosionTime
+    }
+    
+    private var isTop10Score: Bool {
+        gameModel.isTop10Score(gameModel.score)
     }
     
     var body: some View {
@@ -37,6 +42,16 @@ struct GameOverView: View {
                     .foregroundColor(.white)
                 
                 VStack(spacing: 15) {
+                    // Level info
+                    if let currentLevel = gameModel.currentLevel {
+                        ResultRow(
+                            icon: currentLevel.icon,
+                            title: "Level",
+                            value: "Level \(currentLevel.title)",
+                            color: currentLevel.difficulty.color
+                        )
+                    }
+                    
                     ResultRow(
                         icon: "⭐",
                         title: "Score",
@@ -67,6 +82,33 @@ struct GameOverView: View {
             
             // Action buttons
             VStack(spacing: 15) {
+                // Top 10 Score Button
+                if isTop10Score {
+                    Button(action: {
+                        showHighScorePopup = true
+                    }) {
+                        HStack {
+                            Image(systemName: "trophy.fill")
+                            Text("Save Top 10 Score!")
+                        }
+                        .font(.custom("Digitalt", size: 20))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 30)
+                        .padding(.vertical, 15)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [.yellow, .orange]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: .yellow, radius: 10)
+                    }
+                    .scaleEffect(showCelebration ? 1.05 : 1.0)
+                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showCelebration)
+                }
+                
                 Button(action: {
                     gameModel.startGame()
                 }) {
@@ -108,6 +150,17 @@ struct GameOverView: View {
             Spacer()
         }
         .padding()
+        .overlay(
+            // High Score Popup
+            Group {
+                if showHighScorePopup {
+                    HighScorePopupView(
+                        gameModel: gameModel,
+                        isPresented: $showHighScorePopup
+                    )
+                }
+            }
+        )
     }
 }
 

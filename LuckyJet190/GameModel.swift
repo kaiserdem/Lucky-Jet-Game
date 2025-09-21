@@ -22,9 +22,72 @@ struct Achievement: Identifiable, Codable {
     }
 }
 
+// MARK: - High Score
+struct HighScore: Identifiable, Codable {
+    let id: UUID
+    let playerName: String
+    let score: Int
+    let flightTime: Double
+    let levelTitle: String
+    let date: Date
+    
+    init(playerName: String, score: Int, flightTime: Double, levelTitle: String) {
+        self.id = UUID()
+        self.playerName = playerName
+        self.score = score
+        self.flightTime = flightTime
+        self.levelTitle = levelTitle
+        self.date = Date()
+    }
+}
+
+// MARK: - Level
+struct Level: Identifiable, Codable {
+    let id: String
+    let title: String
+    let description: String
+    let icon: String
+    var isUnlocked: Bool
+    let difficulty: LevelDifficulty
+    let requiredScore: Int
+    let explosionTimeRange: ClosedRange<Double>
+    let maxFlightTime: Double
+    
+    init(id: String, title: String, description: String, icon: String, difficulty: LevelDifficulty, requiredScore: Int, explosionTimeRange: ClosedRange<Double>, maxFlightTime: Double, isUnlocked: Bool = false) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.icon = icon
+        self.difficulty = difficulty
+        self.requiredScore = requiredScore
+        self.explosionTimeRange = explosionTimeRange
+        self.maxFlightTime = maxFlightTime
+        self.isUnlocked = isUnlocked
+    }
+}
+
+enum LevelDifficulty: String, CaseIterable, Codable {
+    case easy = "Easy"
+    case medium = "Medium"
+    case hard = "Hard"
+    case expert = "Expert"
+    case master = "Master"
+    
+    var color: Color {
+        switch self {
+        case .easy: return .green
+        case .medium: return .yellow
+        case .hard: return .orange
+        case .expert: return .red
+        case .master: return .purple
+        }
+    }
+}
+
 // MARK: - Game State
 enum GameState {
     case menu
+    case levelSelection
     case playing
     case gameOver
 }
@@ -62,6 +125,14 @@ class GameModel: ObservableObject {
     @Published var achievements: [Achievement] = []
     @Published var unlockedAchievements: Set<String> = []
     
+    // Levels
+    @Published var levels: [Level] = []
+    @Published var currentLevel: Level?
+    @Published var unlockedLevels: Set<String> = []
+    
+    // High Scores
+    @Published var highScores: [HighScore] = []
+    
     private var gameTimer: Timer?
     private var consecutiveJumps: Int = 0
     private var lastJumpTime: Double = 0.0
@@ -70,21 +141,45 @@ class GameModel: ObservableObject {
     init() {
         loadStatistics()
         initializeAchievements()
+        initializeLevels()
+        loadHighScores()
     }
     
     // MARK: - Game Control
     func startGame() {
-        gameState = .playing
-        score = 0
-        flightTime = 0.0
-        isFlying = true
-        jumpPressed = false
-        explosionTime = Double.random(in: 5.0...maxFlightTime)
-        
-        totalGames += 1
-        saveStatistics()
-        
-        startGameTimer()
+        // Знаходимо максимальний доступний рівень
+        if let maxLevel = getMaxUnlockedLevel() {
+            startLevel(maxLevel)
+        } else {
+            // Якщо немає розблокованих рівнів, запускаємо базову гру
+            gameState = .playing
+            score = 0
+            flightTime = 0.0
+            isFlying = true
+            jumpPressed = false
+            explosionTime = Double.random(in: 5.0...maxFlightTime)
+            
+            totalGames += 1
+            saveStatistics()
+            
+            startGameTimer()
+        }
+    }
+    
+    // MARK: - Level Management
+    func getMaxUnlockedLevel() -> Level? {
+        return levels.filter { $0.isUnlocked }.max { level1, level2 in
+            // Порівнюємо за складністю та потім за requiredScore
+            let difficultyOrder: [LevelDifficulty] = [.easy, .medium, .hard, .expert, .master]
+            let level1Index = difficultyOrder.firstIndex(of: level1.difficulty) ?? 0
+            let level2Index = difficultyOrder.firstIndex(of: level2.difficulty) ?? 0
+            
+            if level1Index != level2Index {
+                return level1Index < level2Index
+            }
+            
+            return level1.requiredScore < level2.requiredScore
+        }
     }
     
     func jump() {
@@ -140,6 +235,27 @@ class GameModel: ObservableObject {
         isFlying = false
         jumpPressed = false
         explosionTime = 0.0
+    }
+    
+    func goToLevelSelection() {
+        gameState = .levelSelection
+    }
+    
+    func startLevel(_ level: Level) {
+        currentLevel = level
+        gameState = .playing
+        score = 0
+        flightTime = 0.0
+        isFlying = true
+        jumpPressed = false
+        
+        // Використовуємо налаштування рівня
+        explosionTime = Double.random(in: level.explosionTimeRange)
+        
+        totalGames += 1
+        saveStatistics()
+        
+        startGameTimer()
     }
     
     // MARK: - Timer Management
@@ -406,6 +522,9 @@ class GameModel: ObservableObject {
         if totalGames >= 1000 && !unlockedAchievements.contains("milestone_1000") {
             unlockAchievement("milestone_1000")
         }
+        
+        // Check level unlocks
+        checkLevelUnlocks()
     }
     
     private func unlockAchievement(_ id: String) {
@@ -486,5 +605,171 @@ class GameModel: ObservableObject {
         }
         
         lastJumpTime = flightTime
+    }
+    
+    // MARK: - Levels
+    private func initializeLevels() {
+        levels = [
+            // Easy Levels
+            Level(id: "easy_1", title: "Easy 1", description: "Learn the basics of space flight", icon: "🚀", difficulty: .easy, requiredScore: 0, explosionTimeRange: 5.0...8.0, maxFlightTime: 10.0, isUnlocked: true),
+            Level(id: "easy_2", title: "Easy 2", description: "Master the timing", icon: "👨‍🚀", difficulty: .easy, requiredScore: 100, explosionTimeRange: 4.0...7.0, maxFlightTime: 9.5),
+            Level(id: "easy_3", title: "Easy 3", description: "Build your confidence", icon: "🛸", difficulty: .easy, requiredScore: 200, explosionTimeRange: 3.0...6.0, maxFlightTime: 9.0),
+            
+            // Medium Levels
+            Level(id: "medium_1", title: "Medium 1", description: "Navigate through challenges", icon: "✈️", difficulty: .medium, requiredScore: 300, explosionTimeRange: 2.0...5.0, maxFlightTime: 8.5),
+            Level(id: "medium_2", title: "Medium 2", description: "Master the cosmos", icon: "🌌", difficulty: .medium, requiredScore: 500, explosionTimeRange: 1.5...4.0, maxFlightTime: 8.0),
+            Level(id: "medium_3", title: "Medium 3", description: "Explore the stars", icon: "⭐", difficulty: .medium, requiredScore: 700, explosionTimeRange: 1.0...3.5, maxFlightTime: 7.5),
+            Level(id: "medium_4", title: "Medium 4", description: "Advanced space navigation", icon: "🛰️", difficulty: .medium, requiredScore: 900, explosionTimeRange: 0.8...3.0, maxFlightTime: 7.0),
+            
+            // Hard Levels
+            Level(id: "hard_1", title: "Hard 1", description: "Prove your skills", icon: "🎯", difficulty: .hard, requiredScore: 1000, explosionTimeRange: 0.5...3.0, maxFlightTime: 7.0),
+            Level(id: "hard_2", title: "Hard 2", description: "Battle the elements", icon: "⚔️", difficulty: .hard, requiredScore: 1500, explosionTimeRange: 0.3...2.5, maxFlightTime: 6.5),
+            Level(id: "hard_3", title: "Hard 3", description: "Protect the galaxy", icon: "🛡️", difficulty: .hard, requiredScore: 2000, explosionTimeRange: 0.2...2.0, maxFlightTime: 6.0),
+            Level(id: "hard_4", title: "Hard 4", description: "Elite space combat", icon: "⚡", difficulty: .hard, requiredScore: 2500, explosionTimeRange: 0.1...1.5, maxFlightTime: 5.5),
+            Level(id: "hard_5", title: "Hard 5", description: "Master space warfare", icon: "🔥", difficulty: .hard, requiredScore: 3000, explosionTimeRange: 0.05...1.0, maxFlightTime: 5.0),
+            
+            // Expert Levels
+            Level(id: "expert_1", title: "Expert 1", description: "Become a legend", icon: "👑", difficulty: .expert, requiredScore: 3500, explosionTimeRange: 0.02...0.8, maxFlightTime: 4.5),
+            Level(id: "expert_2", title: "Expert 2", description: "Master the universe", icon: "🌟", difficulty: .expert, requiredScore: 4000, explosionTimeRange: 0.01...0.5, maxFlightTime: 4.0),
+            Level(id: "expert_3", title: "Expert 3", description: "Save the universe", icon: "🦸‍♂️", difficulty: .expert, requiredScore: 4500, explosionTimeRange: 0.005...0.3, maxFlightTime: 3.5),
+            Level(id: "expert_4", title: "Expert 4", description: "Transcend reality", icon: "🔮", difficulty: .expert, requiredScore: 5000, explosionTimeRange: 0.001...0.2, maxFlightTime: 3.0),
+            
+            // Master Levels
+            Level(id: "master_1", title: "Master 1", description: "Rule the cosmos", icon: "👽", difficulty: .master, requiredScore: 5500, explosionTimeRange: 0.0005...0.1, maxFlightTime: 2.5),
+            Level(id: "master_2", title: "Master 2", description: "Create new worlds", icon: "🌍", difficulty: .master, requiredScore: 6000, explosionTimeRange: 0.0001...0.05, maxFlightTime: 2.0),
+            Level(id: "master_3", title: "Master 3", description: "Control time itself", icon: "⏰", difficulty: .master, requiredScore: 6500, explosionTimeRange: 0.00001...0.02, maxFlightTime: 1.5),
+            Level(id: "master_4", title: "Master 4", description: "Become omnipotent", icon: "♾️", difficulty: .master, requiredScore: 7000, explosionTimeRange: 0.000001...0.01, maxFlightTime: 1.0)
+        ]
+        loadLevels()
+    }
+    
+    private func loadLevels() {
+        if let data = UserDefaults.standard.data(forKey: "unlockedLevels"),
+           let unlocked = try? JSONDecoder().decode(Set<String>.self, from: data) {
+            unlockedLevels = unlocked
+            print("📂 Loaded levels: \(unlockedLevels)")
+            
+            // Update level states based on loaded data
+            for i in 0..<levels.count {
+                if unlockedLevels.contains(levels[i].id) {
+                    levels[i] = Level(
+                        id: levels[i].id,
+                        title: levels[i].title,
+                        description: levels[i].description,
+                        icon: levels[i].icon,
+                        difficulty: levels[i].difficulty,
+                        requiredScore: levels[i].requiredScore,
+                        explosionTimeRange: levels[i].explosionTimeRange,
+                        maxFlightTime: levels[i].maxFlightTime,
+                        isUnlocked: true
+                    )
+                }
+            }
+        } else {
+            print("📂 No saved levels found, starting fresh")
+            // Перший рівень завжди розблокований
+            if !levels.isEmpty {
+                unlockLevel("easy_1")
+            }
+        }
+    }
+    
+    private func saveLevels() {
+        if let data = try? JSONEncoder().encode(unlockedLevels) {
+            UserDefaults.standard.set(data, forKey: "unlockedLevels")
+            UserDefaults.standard.synchronize()
+            print("💾 Saved levels: \(unlockedLevels)")
+        } else {
+            print("❌ Failed to save levels")
+        }
+    }
+    
+    private func unlockLevel(_ id: String) {
+        unlockedLevels.insert(id)
+        saveLevels()
+        
+        print("🎉 Unlocked level: \(id)")
+        
+        // Find and update the level
+        if let index = levels.firstIndex(where: { $0.id == id }) {
+            levels[index] = Level(
+                id: levels[index].id,
+                title: levels[index].title,
+                description: levels[index].description,
+                icon: levels[index].icon,
+                difficulty: levels[index].difficulty,
+                requiredScore: levels[index].requiredScore,
+                explosionTimeRange: levels[index].explosionTimeRange,
+                maxFlightTime: levels[index].maxFlightTime,
+                isUnlocked: true
+            )
+        }
+    }
+    
+    func checkLevelUnlocks() {
+        for level in levels {
+            if !unlockedLevels.contains(level.id) && bestScore >= level.requiredScore {
+                unlockLevel(level.id)
+            }
+        }
+    }
+    
+    // MARK: - High Scores Management
+    private func loadHighScores() {
+        if let data = UserDefaults.standard.data(forKey: "highScores"),
+           let scores = try? JSONDecoder().decode([HighScore].self, from: data) {
+            highScores = scores.sorted { $0.score > $1.score }
+            print("📂 Loaded high scores: \(highScores.count)")
+        } else {
+            print("📂 No saved high scores found, starting fresh")
+            highScores = []
+        }
+    }
+    
+    private func saveHighScores() {
+        if let data = try? JSONEncoder().encode(highScores) {
+            UserDefaults.standard.set(data, forKey: "highScores")
+            UserDefaults.standard.synchronize()
+            print("💾 Saved high scores: \(highScores.count)")
+        } else {
+            print("❌ Failed to save high scores")
+        }
+    }
+    
+    func isTop10Score(_ score: Int) -> Bool {
+        if highScores.count < 10 {
+            return true
+        }
+        return score > highScores.last?.score ?? 0
+    }
+    
+    func addHighScore(playerName: String, score: Int, flightTime: Double, levelTitle: String) {
+        let newHighScore = HighScore(
+            playerName: playerName,
+            score: score,
+            flightTime: flightTime,
+            levelTitle: levelTitle
+        )
+        
+        highScores.append(newHighScore)
+        highScores.sort { $0.score > $1.score }
+        
+        // Зберігаємо тільки топ-10
+        if highScores.count > 10 {
+            highScores = Array(highScores.prefix(10))
+        }
+        
+        saveHighScores()
+        print("🏆 Added new high score: \(playerName) - \(score)")
+    }
+    
+    func getCurrentGameHighScore() -> HighScore? {
+        guard let currentLevel = currentLevel else { return nil }
+        return HighScore(
+            playerName: "",
+            score: score,
+            flightTime: flightTime,
+            levelTitle: currentLevel.title
+        )
     }
 }

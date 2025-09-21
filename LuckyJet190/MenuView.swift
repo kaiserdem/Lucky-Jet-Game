@@ -6,6 +6,8 @@ import SwiftUI
 struct MenuView: View {
     @ObservedObject var gameModel: GameModel
     @State private var showAchievements = false
+    @State private var showLevels = false
+    @State private var showHighScores = false
     
     var body: some View {
         VStack(spacing: 30) {
@@ -71,6 +73,52 @@ struct MenuView: View {
                 .shadow(color: .orange, radius: 8)
             }
             
+            // Levels button
+            Button(action: {
+                showLevels = true
+            }) {
+                HStack {
+                    Image(systemName: "gamecontroller.fill")
+                    Text("Levels")
+                }
+                .font(.custom("Digitalt", size: 20))
+                .foregroundColor(.white)
+                .padding(.horizontal, 30)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.blue, .purple]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(20)
+                .shadow(color: .blue, radius: 8)
+            }
+            
+            // High Scores button
+            Button(action: {
+                showHighScores = true
+            }) {
+                HStack {
+                    Image(systemName: "trophy.fill")
+                    Text("High Scores")
+                }
+                .font(.custom("Digitalt", size: 20))
+                .foregroundColor(.white)
+                .padding(.horizontal, 30)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.yellow, .orange]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(20)
+                .shadow(color: .yellow, radius: 8)
+            }
+            
             // Statistics
             VStack(spacing: 15) {
                 Text("📊 Statistics")
@@ -109,6 +157,12 @@ struct MenuView: View {
         .padding()
         .sheet(isPresented: $showAchievements) {
             AchievementView(gameModel: gameModel)
+        }
+        .sheet(isPresented: $showLevels) {
+            LevelSelectionView(gameModel: gameModel)
+        }
+        .sheet(isPresented: $showHighScores) {
+            HighScoresView(gameModel: gameModel)
         }
     }
 }
