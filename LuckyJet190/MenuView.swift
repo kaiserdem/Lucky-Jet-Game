@@ -23,6 +23,7 @@ struct MenuView: View {
                     .font(.custom("Digitalt", size: 20))
                     .foregroundColor(.cyan)
             }
+            .padding(.top, 20)
             
             Spacer()
             

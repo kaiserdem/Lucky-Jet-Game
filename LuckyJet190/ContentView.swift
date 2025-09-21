@@ -17,16 +17,16 @@ struct ContentView: View {
                 case .playing:
                     GameView()
                 case .falling:
-                    GameView()  // Показуємо GameView під час анімації падіння
+                    GameView()
                 case .exploding:
-                    GameView()  // Показуємо GameView під час анімації вибуху
+                    GameView()
                 case .gameOver:
                     GameOverView()
                 }
             }
         }
         .ignoresSafeArea()
-        .environmentObject(gameModel)  // Додаємо gameModel до environment
+        .environmentObject(gameModel)
     }
 }
 

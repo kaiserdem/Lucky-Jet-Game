@@ -123,12 +123,6 @@ struct AstronautRocketView: View {
         UIScreen.main.bounds.height * 0.3 + gameModel.pilotY
     }
     
-    private func logPositions(_ context: String) {
-        let screenHeight = UIScreen.main.bounds.height
-        let basePosition = screenHeight * 0.3
-       
-    }
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -136,30 +130,15 @@ struct AstronautRocketView: View {
                     .font(.custom("Digitalt", size: 60))
                     .rotationEffect(.degrees(gameModel.rocketRotation))
                     .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.3)
-                    .zIndex(1) // Ракета ззаду
+                    .zIndex(1)
                 
                 Text("👨‍🚀")
                     .font(.custom("Digitalt", size: 40))
                     .rotationEffect(.degrees(gameModel.pilotRotation))
                     .position(x: geometry.size.width * 0.5, y: pilotScreenPosition - 25)
-                    .zIndex(2) // Пілот спереду
+                    .zIndex(2)
             }
-            .onAppear {
-                if !gameModel.hasStartedRocketAnimation {
-                    logPositions("🚀 View Appeared - Starting Rocket Animation")
-                    gameModel.startRocketAnimation()
-                } else {
-                    logPositions("🚀 View Appeared - Rocket Animation Already Started")
-                }
-            }
-            .onChange(of: jumpPressed) { jumped in
-                if jumped {
-                    logPositions("🎯 Jump Button Pressed - Before Animation")
-                }
-            }
-            .onChange(of: gameState) { state in
-                logPositions("🎮 Game State Changed to: \(state)")
-            }
+           
         }
     }
     
@@ -272,7 +251,7 @@ struct ExplosionEffect: View {
                     y: CGFloat.random(in: rocketPosition.y - 10...rocketPosition.y + 10)
                 )
                 ,
-                color: Color.red, // Тільки червоні частинки
+                color: Color.red,
                 size: CGFloat.random(in: 6...15),
                 opacity: Double.random(in: 0.8...1.0)
             )

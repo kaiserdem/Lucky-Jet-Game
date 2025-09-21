@@ -85,8 +85,8 @@ enum GameState {
     case menu
     case levelSelection
     case playing
-    case falling  // Новий стан для анімації падіння
-    case exploding  // Новий стан для анімації вибуху
+    case falling
+    case exploding
     case gameOver
 }
 
@@ -98,8 +98,8 @@ class GameModel: ObservableObject {
     @Published var explosionTime: Double = 0.0
     @Published var jumpPressed: Bool = false
     
-    let maxFlightTime: Double = 10.0 // Максимальний час польоту
-    let explosionThreshold: Double = 8.0 // Час до вибуху
+    let maxFlightTime: Double = 10.0
+    let explosionThreshold: Double = 8.0
     
     @Published var totalJumps: Int = 0
     @Published var longestFlight: Double = 0.0
@@ -128,7 +128,7 @@ class GameModel: ObservableObject {
     @Published var animationProgress: Double = 0.0
     
     @Published var rocketRotation: Double = 0.0
-    @Published var pilotY: CGFloat = 0.0  // Пілот починає в базовій позиції ракети
+    @Published var pilotY: CGFloat = 0.0
     @Published var pilotRotation: Double = 0.0
     @Published var isJumping: Bool = false
     @Published var isFalling: Bool = false
@@ -202,7 +202,7 @@ class GameModel: ObservableObject {
         let precisionBonus: Int
         if isSuccess {
             let timeToExplosion = explosionTime - flightTime
-            precisionBonus = max(0, Int(50 - timeToExplosion * 10)) // До 50 додаткових балів
+            precisionBonus = max(0, Int(50 - timeToExplosion * 10))
         } else {
             precisionBonus = 0
         }
@@ -273,7 +273,7 @@ class GameModel: ObservableObject {
     
     func resetAnimationStates() {
         rocketRotation = 0.0
-        pilotY = 0.0  // Пілот починає в базовій позиції ракети
+        pilotY = 0.0
         pilotRotation = 0.0
         isJumping = false
         isFalling = false
@@ -296,8 +296,8 @@ class GameModel: ObservableObject {
         isJumping = true
         
         withAnimation(.easeOut(duration: 1.5)) {
-            pilotY = UIScreen.main.bounds.height  // Пілот падає ЗА МЕЖІ ЕКРАНУ
-            pilotRotation = pilotRotation + 45  // Ледве обертається
+            pilotY = UIScreen.main.bounds.height
+            pilotRotation = pilotRotation + 45
         }
     }
     
@@ -355,7 +355,7 @@ class GameModel: ObservableObject {
             print("💥 Time's up! Starting explosion animation")
             print("🔍 DEBUG: gameState=\(gameState), isFlying=\(isFlying)")
             startFallingAnimation()
-            return  // Виходимо одразу, не збільшуємо час
+            return
         }
         
         if isFlying {
