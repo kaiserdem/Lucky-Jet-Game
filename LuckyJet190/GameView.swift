@@ -76,6 +76,7 @@ struct GameView: View {
                 // Ефект вибуху
                 if gameModel.gameState == .exploding {
                     ExplosionEffect(rocketPosition: rocketPosition)
+                        .position(rocketPosition)
                         .scaleEffect(explosionScale)
                         .opacity(explosionScale > 0 ? 1 : 0)
                         .onAppear {
@@ -268,7 +269,8 @@ struct ExplosionEffect: View {
                 position: CGPoint(
                     x: CGFloat.random(in: rocketPosition.x - 10...rocketPosition.x + 10),
                     y: CGFloat.random(in: rocketPosition.y - 10...rocketPosition.y + 10)
-                ),
+                )
+                ,
                 color: Color.red, // Тільки червоні частинки
                 size: CGFloat.random(in: 6...15),
                 opacity: Double.random(in: 0.8...1.0)
@@ -286,8 +288,10 @@ struct ExplosionEffect: View {
                 let newX = cos(angle) * distance
                 let newY = sin(angle) * distance
                 
-                particles[i].position.x = newX
-                particles[i].position.y = newY
+//                particles[i].position.x = newX
+//                particles[i].position.y = newY
+                particles[i].position.x = newX + rocketPosition.x
+                particles[i].position.y = newY + rocketPosition.y - 300
                 particles[i].opacity = 0
             }
         }
