@@ -141,7 +141,7 @@ class GameModel: ObservableObject {
     
     // Rocket animation states
     @Published var rocketRotation: Double = 0.0
-    @Published var pilotY: CGFloat = 0.0
+    @Published var pilotY: CGFloat = 0.0  // Пілот починає в базовій позиції ракети
     @Published var pilotRotation: Double = 0.0
     @Published var isJumping: Bool = false
     @Published var isFalling: Bool = false
@@ -294,7 +294,7 @@ class GameModel: ObservableObject {
     
     func resetAnimationStates() {
         rocketRotation = 0.0
-        pilotY = 0.0
+        pilotY = 0.0  // Пілот починає в базовій позиції ракети
         pilotRotation = 0.0
         isJumping = false
         isFalling = false
@@ -307,11 +307,7 @@ class GameModel: ObservableObject {
         guard !hasStartedRocketAnimation else { return }
         hasStartedRocketAnimation = true
         
-        // Плавна анімація підйому пілота
-        withAnimation(.easeInOut(duration: 0.5)) {
-            pilotY = -50
-        }
-        
+        // Пілот вже знаходиться в правильній позиції (0), тільки запускаємо тремтіння ракети
         // Постійне тремтіння ракети
         withAnimation(.easeInOut(duration: 0.1).repeatForever(autoreverses: true)) {
             rocketRotation = 2
@@ -322,9 +318,9 @@ class GameModel: ObservableObject {
         guard !isJumping else { return }
         isJumping = true
         
-        // Плавна анімація стрибка - пілот піднімається вище
+        // Плавна анімація стрибка - пілот піднімається трохи вище з базової позиції
         withAnimation(.easeOut(duration: 0.8)) {
-            pilotY = pilotY - 150
+            pilotY = -50  // Піднімаємо пілота над ракетою
             pilotRotation = pilotRotation + 360
         }
     }
@@ -333,9 +329,13 @@ class GameModel: ObservableObject {
         guard !isFalling else { return }
         isFalling = true
         
-        // Пілот падає за межі екрану (використовуємо висоту екрану)
+        // Пілот падає за межі екрану з поточної позиції
         let screenHeight = UIScreen.main.bounds.height
-        let fallDistance: CGFloat = screenHeight + 200 // Падає за межі екрану + додаткові 200 пікселів
+        let basePosition = screenHeight * 0.3  // Базова позиція ракети
+        let currentScreenPosition = basePosition + pilotY  // Поточна позиція пілота на екрані
+        
+        // Розраховуємо відстань до падіння за межі екрану
+        let fallDistance = screenHeight - currentScreenPosition + 200
         
         // Плавна анімація падіння
         withAnimation(.easeIn(duration: 1.5)) {
@@ -345,9 +345,13 @@ class GameModel: ObservableObject {
     }
     
     func performExplosionAnimation() {
-        // Пілот продовжує плавно падати за межі екрану
+        // Пілот продовжує плавно падати за межі екрану з поточної позиції
         let screenHeight = UIScreen.main.bounds.height
-        let explosionDistance: CGFloat = screenHeight + 100 // Додаткове падіння за межі екрану
+        let basePosition = screenHeight * 0.3  // Базова позиція ракети
+        let currentScreenPosition = basePosition + pilotY  // Поточна позиція пілота на екрані
+        
+        // Розраховуємо додаткову відстань для падіння за межі екрану
+        let explosionDistance = screenHeight - currentScreenPosition + 100
         
         // Плавна анімація продовження падіння
         withAnimation(.easeIn(duration: 2.0)) {
