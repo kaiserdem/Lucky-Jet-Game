@@ -16,153 +16,213 @@ struct HighScorePopupView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.8)
-                .ignoresSafeArea()
-                .onTapGesture {
-                }
-            
-            VStack(spacing: 25) {
-                VStack(spacing: 10) {
-                    Text("🏆")
-                        .font(.custom("Digitalt", size: 48))
-                        .scaleEffect(1.2)
-                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: true)
-                    
-                    Text("New High Score!")
-                        .font(.custom("Digitalt", size: 28))
-                        .foregroundColor(.yellow)
-                        .shadow(color: .yellow, radius: 5)
-                    
-                    Text("Congratulations! You made it to the top 10!")
-                        .font(.custom("Digitalt", size: 16))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                }
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.opacity(0.8)
+                    .ignoresSafeArea()
                 
-                VStack(spacing: 15) {
-                    HStack {
-                        Text("Score:")
-                            .font(.custom("Digitalt", size: 18))
-                            .foregroundColor(.white)
+                ScrollView {
+                    VStack(spacing: 25) {
+                        Spacer(minLength: 50)
                         
-                        Spacer()
+                        VStack(spacing: 10) {
+                            Text("🏆")
+                                .font(.custom("Digitalt", size: 48))
+                                .scaleEffect(1.2)
+                                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: true)
+                            
+                            Text("New High Score!")
+                                .font(.custom("Digitalt", size: 28))
+                                .foregroundColor(.yellow)
+                                .shadow(color: .yellow, radius: 5)
+                            
+                            Text("Congratulations! You made it to the top 10!")
+                                .font(.custom("Digitalt", size: 16))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                        }
                         
-                        Text("\(currentScore)")
-                            .font(.custom("Digitalt", size: 20))
-                            .foregroundColor(.yellow)
-                    }
-                    
-                    HStack {
-                        Text("Level:")
-                            .font(.custom("Digitalt", size: 18))
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        Text(currentLevelTitle)
-                            .font(.custom("Digitalt", size: 20))
-                            .foregroundColor(.cyan)
-                    }
-                    
-                    HStack {
-                        Text("Flight Time:")
-                            .font(.custom("Digitalt", size: 18))
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        Text(String(format: "%.1fs", gameModel.flightTime))
-                            .font(.custom("Digitalt", size: 20))
-                            .foregroundColor(.green)
-                    }
-                }
-                .padding()
-                .background(Color.black.opacity(0.3))
-                .cornerRadius(15)
-                
-                VStack(spacing: 10) {
-                    Text("Enter your name:")
-                        .font(.custom("Digitalt", size: 18))
-                        .foregroundColor(.white)
-                    
-                    TextField("Player Name", text: $playerName)
-                        .font(.custom("Digitalt", size: 20))
-                        .foregroundColor(.white)
+                        VStack(spacing: 15) {
+                            HStack {
+                                Text("Score:")
+                                    .font(.custom("Digitalt", size: 18))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Text("\(currentScore)")
+                                    .font(.custom("Digitalt", size: 20))
+                                    .foregroundColor(.yellow)
+                            }
+                            
+                            HStack {
+                                Text("Level:")
+                                    .font(.custom("Digitalt", size: 18))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Text(currentLevelTitle)
+                                    .font(.custom("Digitalt", size: 20))
+                                    .foregroundColor(.cyan)
+                            }
+                            
+                            HStack {
+                                Text("Flight Time:")
+                                    .font(.custom("Digitalt", size: 18))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Text(String(format: "%.1fs", gameModel.flightTime))
+                                    .font(.custom("Digitalt", size: 20))
+                                    .foregroundColor(.green)
+                            }
+                        }
                         .padding()
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(playerName.isEmpty ? Color.gray : Color.blue, lineWidth: 2)
-                        )
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .onSubmit {
-                            saveHighScore()
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(15)
+                        
+                        VStack(spacing: 10) {
+                            Text("Enter your name:")
+                                .font(.custom("Digitalt", size: 18))
+                                .foregroundColor(.white)
+                            
+                            TextField("Player Name", text: $playerName)
+                                .font(.custom("Digitalt", size: 20))
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color.black.opacity(0.5))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(playerName.isEmpty ? Color.gray : Color.blue, lineWidth: 2)
+                                )
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .onSubmit {
+                                    saveHighScore()
+                                }
+                            
+                            if showError {
+                                Text("Please enter your name")
+                                    .font(.custom("Digitalt", size: 14))
+                                    .foregroundColor(.red)
+                            }
                         }
-                    
-                    if showError {
-                        Text("Please enter your name")
-                            .font(.custom("Digitalt", size: 14))
-                            .foregroundColor(.red)
-                    }
-                }
-                
-                HStack(spacing: 20) {
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Cancel")
-                            .font(.custom("Digitalt", size: 18))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 25)
-                            .padding(.vertical, 12)
-                            .background(Color.gray.opacity(0.7))
-                            .cornerRadius(20)
-                    }
-                    
-                    Button(action: {
-                        saveHighScore()
-                    }) {
-                        HStack {
-                            Image(systemName: "trophy.fill")
-                            Text("Save Score")
+                        
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                isPresented = false
+                            }) {
+                                Text("Cancel")
+                                    .font(.custom("Digitalt", size: 18))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 25)
+                                    .padding(.vertical, 12)
+                                    .background(Color.gray.opacity(0.7))
+                                    .cornerRadius(20)
+                            }
+                            
+                            Button(action: {
+                                saveHighScore()
+                            }) {
+                                HStack {
+                                    Image(systemName: "trophy.fill")
+                                    Text("Save Score")
+                                }
+                                .font(.custom("Digitalt", size: 18))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 25)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [.yellow, .orange]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(20)
+                                .shadow(color: .yellow, radius: 5)
+                            }
+                            .disabled(playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
-                        .font(.custom("Digitalt", size: 18))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 25)
-                        .padding(.vertical, 12)
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [.yellow, .orange]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(20)
-                        .shadow(color: .yellow, radius: 5)
+                        
+                        VStack(spacing: 15) {
+                            Text("🎯 Achievement Unlocked!")
+                                .font(.custom("Digitalt", size: 20))
+                                .foregroundColor(.yellow)
+                                .shadow(color: .yellow, radius: 3)
+                            
+                            Text("You've proven your skills as a space pilot!")
+                                .font(.custom("Digitalt", size: 16))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Keep flying and reach even higher scores!")
+                                .font(.custom("Digitalt", size: 14))
+                                .foregroundColor(.cyan)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(15)
+                        
+                        VStack(spacing: 10) {
+                            Text("📊 Statistics")
+                                .font(.custom("Digitalt", size: 18))
+                                .foregroundColor(.white)
+                            
+                            HStack {
+                                Text("Total Games:")
+                                    .font(.custom("Digitalt", size: 16))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Text("\(gameModel.totalGames)")
+                                    .font(.custom("Digitalt", size: 16))
+                                    .foregroundColor(.green)
+                            }
+                            
+                            HStack {
+                                Text("Best Score:")
+                                    .font(.custom("Digitalt", size: 16))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Text("\(gameModel.bestScore)")
+                                    .font(.custom("Digitalt", size: 16))
+                                    .foregroundColor(.yellow)
+                            }
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(15)
+                        
+                        Spacer(minLength: 50)
                     }
-                    .disabled(playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .padding(30)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.black.opacity(0.9), Color.blue.opacity(0.8)]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(25)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.yellow, lineWidth: 3)
+                    )
+                    .shadow(color: .yellow, radius: 20)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 70)
                 }
             }
-            .padding(30)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.black.opacity(0.9), Color.blue.opacity(0.8)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(25)
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color.yellow, lineWidth: 3)
-            )
-            .shadow(color: .yellow, radius: 20)
-            .padding(.horizontal, 20)
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                }
             }
         }
     }
