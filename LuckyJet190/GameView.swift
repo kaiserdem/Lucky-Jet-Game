@@ -62,15 +62,50 @@ struct GameView: View {
                     
                     Spacer()
                     
-                    // Кнопка стрибка
-                    JumpButton(
-                        isEnabled: gameModel.isFlying,
-                        onJump: {
-                            print("🦘 JUMP BUTTON PRESSED - isEnabled: \(gameModel.isFlying)")
-                            gameModel.jump()
+                    // Кнопка стрибка - показується тільки коли гра активна і час ще не сплив
+                    if gameModel.gameState == .playing && gameModel.isFlying {
+                        JumpButton(
+                            isEnabled: gameModel.isFlying,
+                            onJump: {
+                                print("🦘 JUMP BUTTON PRESSED - isEnabled: \(gameModel.isFlying)")
+                                gameModel.jump()
+                            }
+                        )
+                        .padding(.bottom, 50)
+                    }
+                    
+                    // Показуємо детонацію коли час сплив
+                    if gameModel.gameState == .playing && !gameModel.isFlying {
+                        let _ = print("🔥 ДЕТОНАЦІЯ БЛОК: gameState=\(gameModel.gameState), isFlying=\(gameModel.isFlying)")
+                        VStack(spacing: 20) {
+                            // Головний текст детонації з анімацією
+                            Text("💥 ДЕТОНАЦІЯ! 💥")
+                                .font(.system(size: 36, weight: .black, design: .rounded))
+                                .foregroundColor(.red)
+                                .shadow(color: .orange, radius: 10)
+                                .scaleEffect(explosionScale)
+                                .animation(.easeInOut(duration: 0.3).repeatForever(autoreverses: true), value: explosionScale)
+                                .onAppear {
+                                    explosionScale = 1.2
+                                }
+                            
+                            // Підтекст з пульсацією
+                            Text("Час сплив!")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.orange)
+                                .opacity(explosionScale > 1.0 ? 0.7 : 1.0)
+                                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: explosionScale)
+                            
+                            // Ефект радіації
+                            Circle()
+                                .stroke(Color.red, lineWidth: 3)
+                                .frame(width: 100, height: 100)
+                                .scaleEffect(explosionScale * 1.5)
+                                .opacity(2.0 - explosionScale)
+                                .animation(.easeOut(duration: 0.8).repeatForever(autoreverses: false), value: explosionScale)
                         }
-                    )
-                    .padding(.bottom, 50)
+                        .padding(.bottom, 50)
+                    }
                 }
                 
                 // Ефект вибуху

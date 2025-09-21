@@ -392,20 +392,23 @@ class GameModel: ObservableObject {
     private func updateGame() {
         guard gameState == .playing else { return }
         
-        flightTime += 0.1
-        
-        // Перевірка на вибух - якщо пілот не стрибнув до часу вибуху
+        // Перевірка на вибух ПЕРЕД збільшенням часу
         if flightTime >= explosionTime && isFlying {
             isFlying = false
             print("💥 Time's up! Starting explosion animation")
+            print("🔍 DEBUG: gameState=\(gameState), isFlying=\(isFlying)")
             startFallingAnimation()
+            return  // Виходимо одразу, не збільшуємо час
         }
+        
+        flightTime += 0.1
         
         // Максимальний час польоту - якщо пілот не стрибнув до максимального часу
         if flightTime >= maxFlightTime && isFlying {
             isFlying = false
             print("⏰ Max flight time reached! Starting explosion animation")
             startFallingAnimation()
+            return
         }
     }
     
@@ -838,7 +841,8 @@ class GameModel: ObservableObject {
     // MARK: - Animation Management
     private func startFallingAnimation() {
         print("🎬 Starting falling animation")
-        gameState = .falling
+        print("🔍 DEBUG: gameState=\(gameState), isFlying=\(isFlying)")
+        // НЕ змінюємо gameState одразу - залишаємо .playing
         isAnimating = true
         animationProgress = 0.0
         
