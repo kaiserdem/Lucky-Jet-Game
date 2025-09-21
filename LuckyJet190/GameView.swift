@@ -8,6 +8,8 @@ struct GameView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            let rocketPosition = CGPoint(x: geometry.size.width * 0.5, y: geometry.size.height * 0.3)
+            
             ZStack {
                 // Astronaut on rocket
                 AstronautRocketView(
@@ -73,7 +75,7 @@ struct GameView: View {
                 
                 // Ефект вибуху
                 if gameModel.gameState == .exploding {
-                    ExplosionEffect()
+                    ExplosionEffect(rocketPosition: rocketPosition)
                         .scaleEffect(explosionScale)
                         .opacity(explosionScale > 0 ? 1 : 0)
                         .onAppear {
@@ -243,6 +245,7 @@ struct JumpButton: View {
 
 struct ExplosionEffect: View {
     @State private var particles: [Particle] = []
+    let rocketPosition: CGPoint
     
     var body: some View {
         ZStack {
@@ -263,8 +266,8 @@ struct ExplosionEffect: View {
         particles = (0..<1920).map { _ in
             Particle(
                 position: CGPoint(
-                    x: CGFloat.random(in: -20...20),
-                    y: CGFloat.random(in: -20...20)
+                    x: CGFloat.random(in: rocketPosition.x - 10...rocketPosition.x + 10),
+                    y: CGFloat.random(in: rocketPosition.y - 10...rocketPosition.y + 10)
                 ),
                 color: Color.red, // Тільки червоні частинки
                 size: CGFloat.random(in: 6...15),
