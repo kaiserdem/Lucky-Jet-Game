@@ -43,6 +43,7 @@ struct GameView: View {
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(15)
                     .padding()
+                    .padding(.top, 50)
                     
                     Spacer()
                     
