@@ -13,7 +13,6 @@ struct MenuView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            // Game title
             VStack(spacing: 10) {
                 Text("🚀 Lucky Jet")
                     .font(.custom("Digitalt", size: 48))
@@ -27,7 +26,6 @@ struct MenuView: View {
             
             Spacer()
             
-            // Start button
             Button(action: {
                 gameModel.startGame()
             }) {
@@ -50,7 +48,6 @@ struct MenuView: View {
                 .shadow(color: .blue, radius: 10)
             }
             
-            // Achievements button
             Button(action: {
                 showAchievements = true
             }) {
@@ -73,7 +70,6 @@ struct MenuView: View {
                 .shadow(color: .orange, radius: 8)
             }
             
-            // Levels button
             Button(action: {
                 showLevels = true
             }) {
@@ -96,7 +92,6 @@ struct MenuView: View {
                 .shadow(color: .blue, radius: 8)
             }
             
-            // High Scores button
             Button(action: {
                 showHighScores = true
             }) {
@@ -119,7 +114,6 @@ struct MenuView: View {
                 .shadow(color: .yellow, radius: 8)
             }
             
-            // Statistics
             VStack(spacing: 15) {
                 Text("📊 Statistics")
                     .font(.custom("Digitalt", size: 20))
@@ -137,7 +131,6 @@ struct MenuView: View {
             
             Spacer()
             
-            // Instructions
             VStack(spacing: 5) {
                 Text("💡 How to play:")
                     .font(.custom("Digitalt", size: 16))

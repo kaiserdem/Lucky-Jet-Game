@@ -6,7 +6,6 @@ struct LevelSelectionView: View {
     
     var body: some View {
         ZStack {
-            // Background
             LinearGradient(
                 gradient: Gradient(colors: [Color.black, Color.blue.opacity(0.8)]),
                 startPoint: .topLeading,
@@ -15,7 +14,6 @@ struct LevelSelectionView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 20) {
-                // Header
                 HStack {
                     Button(action: {
                         dismiss()
@@ -34,13 +32,11 @@ struct LevelSelectionView: View {
                     
                     Spacer()
                     
-                    // Placeholder for symmetry
                     Color.clear
                         .frame(width: 24, height: 24)
                 }
                 .padding()
                 
-                // Progress summary
                 VStack(spacing: 10) {
                     Text("Progress")
                         .font(.custom("Digitalt", size: 20))
@@ -53,12 +49,10 @@ struct LevelSelectionView: View {
                         .font(.custom("Digitalt", size: 18))
                         .foregroundColor(.white)
                     
-                    // Progress bar
                     ProgressView(value: Double(unlockedCount), total: Double(totalCount))
                         .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                         .scaleEffect(x: 1, y: 2, anchor: .center)
                     
-                    // Level categories
                     HStack(spacing: 15) {
                         VStack {
                             Text("\(gameModel.levels.filter { $0.isUnlocked && $0.difficulty == .easy }.count)")
@@ -103,7 +97,6 @@ struct LevelSelectionView: View {
                 .cornerRadius(15)
                 .padding(.horizontal)
                 
-                // Levels list
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(gameModel.levels) { level in
@@ -123,7 +116,6 @@ struct LevelRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            // Icon
             Text(level.icon)
                 .font(.custom("Digitalt", size: 32))
                 .frame(width: 50, height: 50)
@@ -136,7 +128,6 @@ struct LevelRow: View {
                         .stroke(level.isUnlocked ? level.difficulty.color : Color.gray, lineWidth: 2)
                 )
             
-            // Content
             VStack(alignment: .leading, spacing: 5) {
                 Text(level.title)
                     .font(.custom("Digitalt", size: 18))
@@ -164,7 +155,6 @@ struct LevelRow: View {
             
             Spacer()
             
-            // Action button
             if level.isUnlocked {
                 Button(action: {
                     gameModel.startLevel(level)

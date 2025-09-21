@@ -3,7 +3,6 @@ import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - Achievement
 struct Achievement: Identifiable, Codable {
     let id: String
     let title: String
@@ -22,7 +21,6 @@ struct Achievement: Identifiable, Codable {
     }
 }
 
-// MARK: - High Score
 struct HighScore: Identifiable, Codable {
     let id: UUID
     let playerName: String
@@ -41,7 +39,6 @@ struct HighScore: Identifiable, Codable {
     }
 }
 
-// MARK: - Level
 struct Level: Identifiable, Codable {
     let id: String
     let title: String
@@ -84,7 +81,6 @@ enum LevelDifficulty: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - Game State
 enum GameState {
     case menu
     case levelSelection
@@ -94,7 +90,6 @@ enum GameState {
     case gameOver
 }
 
-// MARK: - Game Model
 class GameModel: ObservableObject {
     @Published var gameState: GameState = .menu
     @Published var score: Int = 0
@@ -103,16 +98,13 @@ class GameModel: ObservableObject {
     @Published var explosionTime: Double = 0.0
     @Published var jumpPressed: Bool = false
     
-    // Game settings
     let maxFlightTime: Double = 10.0 // Максимальний час польоту
     let explosionThreshold: Double = 8.0 // Час до вибуху
     
-    // Statistics
     @Published var totalJumps: Int = 0
     @Published var longestFlight: Double = 0.0
     @Published var bestScore: Int = 0
     
-    // Additional statistics for achievements
     @Published var totalGames: Int = 0
     @Published var totalSuccessfulJumps: Int = 0
     @Published var totalExplosions: Int = 0
@@ -123,23 +115,18 @@ class GameModel: ObservableObject {
     @Published var consecutiveExplosions: Int = 0
     @Published var consecutivePerfectTiming: Int = 0
     
-    // Achievements
     @Published var achievements: [Achievement] = []
     @Published var unlockedAchievements: Set<String> = []
     
-    // Levels
     @Published var levels: [Level] = []
     @Published var currentLevel: Level?
     @Published var unlockedLevels: Set<String> = []
     
-    // High Scores
     @Published var highScores: [HighScore] = []
     
-    // Animation states
     @Published var isAnimating: Bool = false
     @Published var animationProgress: Double = 0.0
     
-    // Rocket animation states
     @Published var rocketRotation: Double = 0.0
     @Published var pilotY: CGFloat = 0.0  // Пілот починає в базовій позиції ракети
     @Published var pilotRotation: Double = 0.0
@@ -160,16 +147,12 @@ class GameModel: ObservableObject {
         loadHighScores()
     }
     
-    // MARK: - Game Control
     func startGame() {
-        // Reset animation states before starting
         resetAnimationStates()
         
-        // Знаходимо максимальний доступний рівень
         if let maxLevel = getMaxUnlockedLevel() {
             startLevel(maxLevel)
         } else {
-            // Якщо немає розблокованих рівнів, запускаємо базову гру
             gameState = .playing
             score = 0
             flightTime = 0.0
@@ -185,10 +168,8 @@ class GameModel: ObservableObject {
         }
     }
     
-    // MARK: - Level Management
     func getMaxUnlockedLevel() -> Level? {
         return levels.filter { $0.isUnlocked }.max { level1, level2 in
-            // Порівнюємо за складністю та потім за requiredScore
             let difficultyOrder: [LevelDifficulty] = [.easy, .medium, .hard, .expert, .master]
             let level1Index = difficultyOrder.firstIndex(of: level1.difficulty) ?? 0
             let level2Index = difficultyOrder.firstIndex(of: level2.difficulty) ?? 0
@@ -212,16 +193,12 @@ class GameModel: ObservableObject {
         isFlying = false
         totalJumps += 1
         
-        // Розраховуємо результат
         let isSuccess = flightTime < explosionTime
         
-        // Базові бали за час польоту (квадратична залежність для більших балів)
         let timeBonus = Int(pow(flightTime, 1.5) * 20)
         
-        // Бонус за успішне приземлення
         let survivalBonus = isSuccess ? 200 : 0
         
-        // Бонус за точність (чим ближче до вибуху, тим більше балів)
         let precisionBonus: Int
         if isSuccess {
             let timeToExplosion = explosionTime - flightTime
@@ -230,7 +207,6 @@ class GameModel: ObservableObject {
             precisionBonus = 0
         }
         
-        // Бонус за рівень складності
         let levelBonus: Int
         if let currentLevel = currentLevel {
             switch currentLevel.difficulty {
@@ -254,19 +230,15 @@ class GameModel: ObservableObject {
             bestScore = score
         }
         
-        // Check jump-related achievements
         checkJumpAchievements(flightTime: flightTime, explosionTime: explosionTime, isSuccess: isSuccess)
         checkAchievements()
         
         saveStatistics()
         
-        // Викликаємо анімацію стрибка
         performJumpAnimation()
         
-        // Пілот успішно стрибнув - гра закінчується успішно
         print("🚀 Jump successful!")
         
-        // Завершуємо гру після успішного стрибка
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.endGame()
         }
@@ -276,7 +248,6 @@ class GameModel: ObservableObject {
         gameState = .gameOver
         stopGameTimer()
         
-        // Track explosions
         if !jumpPressed {
             totalExplosions += 1
             consecutiveExplosions += 1
@@ -297,7 +268,6 @@ class GameModel: ObservableObject {
         jumpPressed = false
         explosionTime = 0.0
         
-        // Reset animation states
         resetAnimationStates()
     }
     
@@ -316,8 +286,6 @@ class GameModel: ObservableObject {
         guard !hasStartedRocketAnimation else { return }
         hasStartedRocketAnimation = true
         
-        // Пілот вже знаходиться в правильній позиції (0), тільки запускаємо тремтіння ракети
-        // Постійне тремтіння ракети
         withAnimation(.easeInOut(duration: 0.1).repeatForever(autoreverses: true)) {
             rocketRotation = 2
         }
@@ -327,7 +295,6 @@ class GameModel: ObservableObject {
         guard !isJumping else { return }
         isJumping = true
         
-        // Плавна анімація стрибка - пілот піднімається трохи вище з базової позиції
         withAnimation(.easeOut(duration: 1.5)) {
             pilotY = UIScreen.main.bounds.height  // Пілот падає ЗА МЕЖІ ЕКРАНУ
             pilotRotation = pilotRotation + 45  // Ледве обертається
@@ -338,18 +305,12 @@ class GameModel: ObservableObject {
         guard !isFalling else { return }
         isFalling = true
         
-        // Пілот залишається на ракеті - нічого не відбувається
-        // Тільки підготовка до вибуху
         print("🎬 Pilot stays on rocket, preparing for explosion")
     }
     
     func performExplosionAnimation() {
-        // Пілот залишається на ракеті - нічого не відбувається з пілотом
-        // Тільки анімація вибуху (червоні елементи)
         print("💥 Explosion animation - pilot stays on rocket")
         
-        // TODO: Додати анімацію червоних елементів вибуху
-        // Поки що просто логуємо
     }
     
     func goToLevelSelection() {
@@ -357,7 +318,6 @@ class GameModel: ObservableObject {
     }
     
     func startLevel(_ level: Level) {
-        // Reset animation states before starting
         resetAnimationStates()
         
         currentLevel = level
@@ -367,7 +327,6 @@ class GameModel: ObservableObject {
         isFlying = true
         jumpPressed = false
         
-        // Використовуємо налаштування рівня
         explosionTime = Double.random(in: level.explosionTimeRange)
         print("🎮 Level: \(level.title), explosionTime: \(explosionTime), range: \(level.explosionTimeRange)")
         
@@ -377,7 +336,6 @@ class GameModel: ObservableObject {
         startGameTimer()
     }
     
-    // MARK: - Timer Management
     private func startGameTimer() {
         gameTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             self.updateGame()
@@ -392,7 +350,6 @@ class GameModel: ObservableObject {
     private func updateGame() {
         guard gameState == .playing else { return }
         
-        // Перевірка на вибух ПЕРЕД збільшенням часу
         if flightTime >= explosionTime && isFlying {
             isFlying = false
             print("💥 Time's up! Starting explosion animation")
@@ -401,11 +358,9 @@ class GameModel: ObservableObject {
             return  // Виходимо одразу, не збільшуємо час
         }
         
-        // Збільшуємо час тільки якщо ракета ще летить
         if isFlying {
             flightTime += 0.1
             
-            // Максимальний час польоту - якщо пілот не стрибнув до максимального часу
             if flightTime >= maxFlightTime {
                 isFlying = false
                 print("⏰ Max flight time reached! Starting explosion animation")
@@ -416,7 +371,6 @@ class GameModel: ObservableObject {
         }
     }
     
-    // MARK: - Statistics
     private func saveStatistics() {
         UserDefaults.standard.set(totalJumps, forKey: "totalJumps")
         UserDefaults.standard.set(longestFlight, forKey: "longestFlight")
@@ -464,15 +418,12 @@ class GameModel: ObservableObject {
         saveStatistics()
     }
     
-    // MARK: - Achievements
     private func initializeAchievements() {
         achievements = [
-            // Basic Achievements
             Achievement(id: "first_jump", title: "First Jump", description: "Make your first jump", icon: "🚀"),
             Achievement(id: "first_success", title: "First Success", description: "Successfully complete your first jump", icon: "✨"),
             Achievement(id: "first_explosion", title: "First Explosion", description: "Experience your first explosion", icon: "💥"),
             
-            // Timing Achievements
             Achievement(id: "quick_reflex", title: "Quick Reflex", description: "Jump in the last second before explosion", icon: "⚡"),
             Achievement(id: "perfect_timing", title: "Perfect Timing", description: "Jump at the perfect moment (within 0.5s of explosion)", icon: "🎯"),
             Achievement(id: "speed_demon", title: "Speed Demon", description: "Jump within 1 second of takeoff", icon: "💨"),
@@ -480,38 +431,32 @@ class GameModel: ObservableObject {
             Achievement(id: "last_moment", title: "Last Moment", description: "Jump within 0.2 seconds of explosion", icon: "⏱️"),
             Achievement(id: "early_bird", title: "Early Bird", description: "Jump within 2 seconds of takeoff", icon: "🐦"),
             
-            // Flight Time Achievements
             Achievement(id: "astronaut", title: "Astronaut", description: "Fly for more than 8 seconds", icon: "👨‍🚀"),
             Achievement(id: "space_explorer", title: "Space Explorer", description: "Fly for more than 9 seconds", icon: "🛸"),
             Achievement(id: "cosmic_traveler", title: "Cosmic Traveler", description: "Fly for more than 9.5 seconds", icon: "🌌"),
             Achievement(id: "time_master", title: "Time Master", description: "Fly for exactly 10 seconds", icon: "⏰"),
             Achievement(id: "short_flight", title: "Short Flight", description: "Fly for less than 3 seconds", icon: "🪶"),
             
-            // Score Achievements
             Achievement(id: "score_100", title: "Century", description: "Score 100 points in a single game", icon: "💯"),
             Achievement(id: "score_500", title: "Half Thousand", description: "Score 500 points in a single game", icon: "🎯"),
             Achievement(id: "score_1000", title: "Thousand", description: "Score 1000 points in a single game", icon: "🏆"),
             Achievement(id: "high_scorer", title: "High Scorer", description: "Score more than 2000 points in a single game", icon: "⭐"),
             
-            // Streak Achievements
             Achievement(id: "streak_3", title: "Triple", description: "Make 3 successful jumps in a row", icon: "🔥"),
             Achievement(id: "streak_5", title: "Hot Streak", description: "Make 5 successful jumps in a row", icon: "🔥"),
             Achievement(id: "streak_10", title: "Unstoppable", description: "Make 10 successful jumps in a row", icon: "🚀"),
             Achievement(id: "streak_20", title: "Legendary", description: "Make 20 successful jumps in a row", icon: "👑"),
             
-            // Total Statistics Achievements
             Achievement(id: "survivor", title: "Survivor", description: "Make 10 successful jumps total", icon: "🏆"),
             Achievement(id: "veteran", title: "Veteran", description: "Make 50 successful jumps total", icon: "🎖️"),
             Achievement(id: "master", title: "Master", description: "Make 100 successful jumps total", icon: "🏅"),
             Achievement(id: "grandmaster", title: "Grandmaster", description: "Make 500 successful jumps total", icon: "👑"),
             
-            // Special Achievements
             Achievement(id: "lucky_one", title: "Lucky One", description: "Survive 5 explosions in a row", icon: "🍀"),
             Achievement(id: "risk_taker", title: "Risk Taker", description: "Jump 10 times in the last 0.5 seconds", icon: "🎲"),
             Achievement(id: "conservative", title: "Conservative", description: "Jump 10 times after 8 seconds", icon: "🛡️"),
             Achievement(id: "perfectionist", title: "Perfectionist", description: "Get perfect timing 5 times in a row", icon: "💎"),
             
-            // Milestone Achievements
             Achievement(id: "milestone_100", title: "Century Club", description: "Play 100 games total", icon: "💯"),
             Achievement(id: "milestone_500", title: "Half Thousand Club", description: "Play 500 games total", icon: "🎯"),
             Achievement(id: "milestone_1000", title: "Thousand Club", description: "Play 1000 games total", icon: "🏆")
@@ -525,7 +470,6 @@ class GameModel: ObservableObject {
             unlockedAchievements = unlocked
             print("📂 Loaded achievements: \(unlockedAchievements)")
             
-            // Update achievement states based on loaded data
             for i in 0..<achievements.count {
                 if unlockedAchievements.contains(achievements[i].id) {
                     achievements[i] = Achievement(
@@ -553,7 +497,6 @@ class GameModel: ObservableObject {
     }
     
     private func checkAchievements() {
-        // Basic Achievements
         if totalJumps >= 1 && !unlockedAchievements.contains("first_jump") {
             unlockAchievement("first_jump")
         }
@@ -566,7 +509,6 @@ class GameModel: ObservableObject {
             unlockAchievement("first_explosion")
         }
         
-        // Flight Time Achievements
         if longestFlight >= 8.0 && !unlockedAchievements.contains("astronaut") {
             unlockAchievement("astronaut")
         }
@@ -587,7 +529,6 @@ class GameModel: ObservableObject {
             unlockAchievement("short_flight")
         }
         
-        // Score Achievements
         if bestScore >= 100 && !unlockedAchievements.contains("score_100") {
             unlockAchievement("score_100")
         }
@@ -604,7 +545,6 @@ class GameModel: ObservableObject {
             unlockAchievement("high_scorer")
         }
         
-        // Total Statistics Achievements
         if totalSuccessfulJumps >= 10 && !unlockedAchievements.contains("survivor") {
             unlockAchievement("survivor")
         }
@@ -621,7 +561,6 @@ class GameModel: ObservableObject {
             unlockAchievement("grandmaster")
         }
         
-        // Special Achievements
         if consecutiveExplosions >= 5 && !unlockedAchievements.contains("lucky_one") {
             unlockAchievement("lucky_one")
         }
@@ -638,7 +577,6 @@ class GameModel: ObservableObject {
             unlockAchievement("perfectionist")
         }
         
-        // Milestone Achievements
         if totalGames >= 100 && !unlockedAchievements.contains("milestone_100") {
             unlockAchievement("milestone_100")
         }
@@ -651,7 +589,6 @@ class GameModel: ObservableObject {
             unlockAchievement("milestone_1000")
         }
         
-        // Check level unlocks
         checkLevelUnlocks()
     }
     
@@ -661,7 +598,6 @@ class GameModel: ObservableObject {
         
         print("🎉 Unlocked achievement: \(id)")
         
-        // Find and update the achievement
         if let index = achievements.firstIndex(where: { $0.id == id }) {
             achievements[index] = Achievement(
                 id: achievements[index].id,
@@ -674,12 +610,10 @@ class GameModel: ObservableObject {
     }
     
     func checkJumpAchievements(flightTime: Double, explosionTime: Double, isSuccess: Bool) {
-        // Update statistics
         if isSuccess {
             totalSuccessfulJumps += 1
         }
         
-        // Timing Achievements
         if flightTime >= explosionTime - 1.0 && !unlockedAchievements.contains("quick_reflex") {
             unlockAchievement("quick_reflex")
             lastSecondJumps += 1
@@ -713,7 +647,6 @@ class GameModel: ObservableObject {
             unlockAchievement("early_bird")
         }
         
-        // Streak Achievements
         if isSuccess {
             consecutiveJumps += 1
             if consecutiveJumps >= 3 && !unlockedAchievements.contains("streak_3") {
@@ -735,34 +668,28 @@ class GameModel: ObservableObject {
         lastJumpTime = flightTime
     }
     
-    // MARK: - Levels
     private func initializeLevels() {
         levels = [
-            // Easy Levels
             Level(id: "easy_1", title: "Easy 1", description: "Learn the basics of space flight", icon: "🚀", difficulty: .easy, requiredScore: 0, explosionTimeRange: 5.0...8.0, maxFlightTime: 10.0, isUnlocked: true),
             Level(id: "easy_2", title: "Easy 2", description: "Master the timing", icon: "👨‍🚀", difficulty: .easy, requiredScore: 100, explosionTimeRange: 4.0...7.0, maxFlightTime: 9.5),
             Level(id: "easy_3", title: "Easy 3", description: "Build your confidence", icon: "🛸", difficulty: .easy, requiredScore: 200, explosionTimeRange: 3.0...6.0, maxFlightTime: 9.0),
             
-            // Medium Levels
             Level(id: "medium_1", title: "Medium 1", description: "Navigate through challenges", icon: "✈️", difficulty: .medium, requiredScore: 300, explosionTimeRange: 3.0...6.0, maxFlightTime: 8.5),
             Level(id: "medium_2", title: "Medium 2", description: "Master the cosmos", icon: "🌌", difficulty: .medium, requiredScore: 500, explosionTimeRange: 2.5...5.0, maxFlightTime: 8.0),
             Level(id: "medium_3", title: "Medium 3", description: "Explore the stars", icon: "⭐", difficulty: .medium, requiredScore: 700, explosionTimeRange: 2.0...4.0, maxFlightTime: 7.5),
             Level(id: "medium_4", title: "Medium 4", description: "Advanced space navigation", icon: "🛰️", difficulty: .medium, requiredScore: 900, explosionTimeRange: 1.5...3.5, maxFlightTime: 7.0),
             
-            // Hard Levels
             Level(id: "hard_1", title: "Hard 1", description: "Prove your skills", icon: "🎯", difficulty: .hard, requiredScore: 1000, explosionTimeRange: 0.5...3.0, maxFlightTime: 7.0),
             Level(id: "hard_2", title: "Hard 2", description: "Battle the elements", icon: "⚔️", difficulty: .hard, requiredScore: 1500, explosionTimeRange: 0.3...2.5, maxFlightTime: 6.5),
             Level(id: "hard_3", title: "Hard 3", description: "Protect the galaxy", icon: "🛡️", difficulty: .hard, requiredScore: 2000, explosionTimeRange: 0.2...2.0, maxFlightTime: 6.0),
             Level(id: "hard_4", title: "Hard 4", description: "Elite space combat", icon: "⚡", difficulty: .hard, requiredScore: 2500, explosionTimeRange: 0.1...1.5, maxFlightTime: 5.5),
             Level(id: "hard_5", title: "Hard 5", description: "Master space warfare", icon: "🔥", difficulty: .hard, requiredScore: 3000, explosionTimeRange: 0.05...1.0, maxFlightTime: 5.0),
             
-            // Expert Levels
             Level(id: "expert_1", title: "Expert 1", description: "Become a legend", icon: "👑", difficulty: .expert, requiredScore: 3500, explosionTimeRange: 0.02...0.8, maxFlightTime: 4.5),
             Level(id: "expert_2", title: "Expert 2", description: "Master the universe", icon: "🌟", difficulty: .expert, requiredScore: 4000, explosionTimeRange: 0.01...0.5, maxFlightTime: 4.0),
             Level(id: "expert_3", title: "Expert 3", description: "Save the universe", icon: "🦸‍♂️", difficulty: .expert, requiredScore: 4500, explosionTimeRange: 0.005...0.3, maxFlightTime: 3.5),
             Level(id: "expert_4", title: "Expert 4", description: "Transcend reality", icon: "🔮", difficulty: .expert, requiredScore: 5000, explosionTimeRange: 0.001...0.2, maxFlightTime: 3.0),
             
-            // Master Levels
             Level(id: "master_1", title: "Master 1", description: "Rule the cosmos", icon: "👽", difficulty: .master, requiredScore: 5500, explosionTimeRange: 0.0005...0.1, maxFlightTime: 2.5),
             Level(id: "master_2", title: "Master 2", description: "Create new worlds", icon: "🌍", difficulty: .master, requiredScore: 6000, explosionTimeRange: 0.0001...0.05, maxFlightTime: 2.0),
             Level(id: "master_3", title: "Master 3", description: "Control time itself", icon: "⏰", difficulty: .master, requiredScore: 6500, explosionTimeRange: 0.00001...0.02, maxFlightTime: 1.5),
@@ -777,7 +704,6 @@ class GameModel: ObservableObject {
             unlockedLevels = unlocked
             print("📂 Loaded levels: \(unlockedLevels)")
             
-            // Update level states based on loaded data
             for i in 0..<levels.count {
                 if unlockedLevels.contains(levels[i].id) {
                     levels[i] = Level(
@@ -795,7 +721,6 @@ class GameModel: ObservableObject {
             }
         } else {
             print("📂 No saved levels found, starting fresh")
-            // Перший рівень завжди розблокований
             if !levels.isEmpty {
                 unlockLevel("easy_1")
             }
@@ -818,7 +743,6 @@ class GameModel: ObservableObject {
         
         print("🎉 Unlocked level: \(id)")
         
-        // Find and update the level
         if let index = levels.firstIndex(where: { $0.id == id }) {
             levels[index] = Level(
                 id: levels[index].id,
@@ -842,18 +766,14 @@ class GameModel: ObservableObject {
         }
     }
     
-    // MARK: - Animation Management
     private func startFallingAnimation() {
         print("🎬 Starting falling animation")
         print("🔍 DEBUG: gameState=\(gameState), isFlying=\(isFlying)")
-        // НЕ змінюємо gameState одразу - залишаємо .playing
         isAnimating = true
         animationProgress = 0.0
         
-        // Викликаємо анімацію падіння
         performFallingAnimation()
         
-        // Анімація падіння триває 1.5 секунди
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
             self.animationProgress += 0.016 / 1.5
             
@@ -870,10 +790,8 @@ class GameModel: ObservableObject {
         gameState = .exploding
         animationProgress = 0.0
         
-        // Викликаємо анімацію вибуху
         performExplosionAnimation()
         
-        // Анімація вибуху триває 3 секунди (повільніша)
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
             self.animationProgress += 0.016 / 3.0
             
@@ -891,7 +809,6 @@ class GameModel: ObservableObject {
         endGame()
     }
     
-    // MARK: - High Scores Management
     private func loadHighScores() {
         if let data = UserDefaults.standard.data(forKey: "highScores"),
            let scores = try? JSONDecoder().decode([HighScore].self, from: data) {
@@ -931,7 +848,6 @@ class GameModel: ObservableObject {
         highScores.append(newHighScore)
         highScores.sort { $0.score > $1.score }
         
-        // Зберігаємо тільки топ-10
         if highScores.count > 10 {
             highScores = Array(highScores.prefix(10))
         }

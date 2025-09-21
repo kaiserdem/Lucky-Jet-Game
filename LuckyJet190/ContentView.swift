@@ -7,7 +7,6 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Фон космосу
                 SpaceBackground()
                 
                 switch gameModel.gameState {

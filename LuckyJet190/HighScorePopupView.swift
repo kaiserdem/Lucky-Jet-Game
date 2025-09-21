@@ -17,16 +17,12 @@ struct HighScorePopupView: View {
     
     var body: some View {
         ZStack {
-            // Background overlay
             Color.black.opacity(0.8)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    // Don't dismiss on background tap
                 }
             
-            // Popup content
             VStack(spacing: 25) {
-                // Header
                 VStack(spacing: 10) {
                     Text("🏆")
                         .font(.custom("Digitalt", size: 48))
@@ -44,7 +40,6 @@ struct HighScorePopupView: View {
                         .multilineTextAlignment(.center)
                 }
                 
-                // Score info
                 VStack(spacing: 15) {
                     HStack {
                         Text("Score:")
@@ -86,7 +81,6 @@ struct HighScorePopupView: View {
                 .background(Color.black.opacity(0.3))
                 .cornerRadius(15)
                 
-                // Name input
                 VStack(spacing: 10) {
                     Text("Enter your name:")
                         .font(.custom("Digitalt", size: 18))
@@ -114,7 +108,6 @@ struct HighScorePopupView: View {
                     }
                 }
                 
-                // Action buttons
                 HStack(spacing: 20) {
                     Button(action: {
                         isPresented = false
@@ -169,9 +162,7 @@ struct HighScorePopupView: View {
             .padding(.horizontal, 20)
         }
         .onAppear {
-            // Auto-focus on text field
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Focus logic would go here if needed
             }
         }
     }
@@ -186,7 +177,6 @@ struct HighScorePopupView: View {
         
         showError = false
         
-        // Save the high score
         gameModel.addHighScore(
             playerName: trimmedName,
             score: currentScore,
@@ -194,10 +184,8 @@ struct HighScorePopupView: View {
             levelTitle: currentLevelTitle
         )
         
-        // Call callback to notify parent
         onScoreSaved?()
         
-        // Dismiss popup
         isPresented = false
     }
 }

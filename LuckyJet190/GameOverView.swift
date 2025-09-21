@@ -19,7 +19,6 @@ struct GameOverView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            // Game result
             VStack(spacing: 15) {
                 Text(isSuccess ? "🎉 Saved!" : "💥 Exploded!")
                     .font(.custom("Digitalt", size: 36))
@@ -36,14 +35,12 @@ struct GameOverView: View {
                 showCelebration = true
             }
             
-            // Game statistics
             VStack(spacing: 20) {
                 Text("📊 Game Result")
                     .font(.custom("Digitalt", size: 24))
                     .foregroundColor(.white)
                 
                 VStack(spacing: 15) {
-                    // Level info
                     if let currentLevel = gameModel.currentLevel {
                         ResultRow(
                             icon: currentLevel.icon,
@@ -81,9 +78,7 @@ struct GameOverView: View {
             
             Spacer()
             
-            // Action buttons
             VStack(spacing: 15) {
-                // Top 10 Score Button - показується тільки коли виграв і ще не зберіг
                 if isSuccess && isTop10Score && !hasSavedScore {
                     Button(action: {
                         showHighScorePopup = true
@@ -152,7 +147,6 @@ struct GameOverView: View {
         }
         .padding()
         .overlay(
-            // High Score Popup
             Group {
                 if showHighScorePopup {
                     HighScorePopupView(

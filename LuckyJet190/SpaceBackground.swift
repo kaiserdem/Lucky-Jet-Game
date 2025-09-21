@@ -6,7 +6,6 @@ struct SpaceBackground: View {
     
     var body: some View {
         ZStack {
-            // Основний фон космосу
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color(red: 0.05, green: 0.05, blue: 0.2),
@@ -17,7 +16,6 @@ struct SpaceBackground: View {
                 endPoint: .bottom
             )
             
-            // Зірки
             ForEach(0..<50, id: \.self) { index in
                 Circle()
                     .fill(Color.white)
@@ -29,7 +27,6 @@ struct SpaceBackground: View {
                     .opacity(Double.random(in: 0.3...1.0))
             }
             
-            // Планета внизу
             Circle()
                 .fill(
                     RadialGradient(

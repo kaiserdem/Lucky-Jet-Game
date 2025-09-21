@@ -6,7 +6,6 @@ struct HighScoresView: View {
     
     var body: some View {
         ZStack {
-            // Background
             LinearGradient(
                 gradient: Gradient(colors: [Color.black, Color.purple.opacity(0.8)]),
                 startPoint: .topLeading,
@@ -15,7 +14,6 @@ struct HighScoresView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 20) {
-                // Header
                 HStack {
                     Button(action: {
                         dismiss()
@@ -34,13 +32,11 @@ struct HighScoresView: View {
                     
                     Spacer()
                     
-                    // Placeholder for symmetry
                     Color.clear
                         .frame(width: 24, height: 24)
                 }
                 .padding()
                 
-                // Summary info
                 VStack(spacing: 10) {
                     Text("Top Performers")
                         .font(.custom("Digitalt", size: 20))
@@ -84,9 +80,7 @@ struct HighScoresView: View {
                 .cornerRadius(15)
                 .padding(.horizontal)
                 
-                // High scores list
                 if gameModel.highScores.isEmpty {
-                    // Empty state
                     VStack(spacing: 20) {
                         Text("🎯")
                             .font(.custom("Digitalt", size: 64))
@@ -149,7 +143,6 @@ struct HighScoreRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            // Rank
             VStack {
                 Text(rankIcon)
                     .font(.custom("Digitalt", size: isTopThree ? 28 : 20))
@@ -163,7 +156,6 @@ struct HighScoreRow: View {
             }
             .frame(width: 50)
             
-            // Player info
             VStack(alignment: .leading, spacing: 5) {
                 Text(score.playerName)
                     .font(.custom("Digitalt", size: 18))
@@ -181,7 +173,6 @@ struct HighScoreRow: View {
             
             Spacer()
             
-            // Score info
             VStack(alignment: .trailing, spacing: 5) {
                 Text("\(score.score)")
                     .font(.custom("Digitalt", size: 20))

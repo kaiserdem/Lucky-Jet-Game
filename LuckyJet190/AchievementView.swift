@@ -6,7 +6,6 @@ struct AchievementView: View {
     
     var body: some View {
         ZStack {
-            // Background
             LinearGradient(
                 gradient: Gradient(colors: [Color.black, Color.purple.opacity(0.8)]),
                 startPoint: .topLeading,
@@ -15,7 +14,6 @@ struct AchievementView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 20) {
-                // Header
                 HStack {
                     Button(action: {
                         dismiss()
@@ -34,13 +32,11 @@ struct AchievementView: View {
                     
                     Spacer()
                     
-                    // Placeholder for symmetry
                     Color.clear
                         .frame(width: 24, height: 24)
                 }
                 .padding()
                 
-                // Progress summary
                 VStack(spacing: 10) {
                     Text("Progress")
                         .font(.custom("Digitalt", size: 20))
@@ -53,12 +49,10 @@ struct AchievementView: View {
                         .font(.custom("Digitalt", size: 18))
                         .foregroundColor(.white)
                     
-                    // Progress bar
                     ProgressView(value: Double(unlockedCount), total: Double(totalCount))
                         .progressViewStyle(LinearProgressViewStyle(tint: .yellow))
                         .scaleEffect(x: 1, y: 2, anchor: .center)
                     
-                    // Achievement categories
                     HStack(spacing: 15) {
                         VStack {
                             Text("\(gameModel.achievements.filter { $0.isUnlocked && $0.id.contains("first") || $0.id.contains("basic") }.count)")
@@ -103,7 +97,6 @@ struct AchievementView: View {
                 .cornerRadius(15)
                 .padding(.horizontal)
                 
-                // Achievements list
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(gameModel.achievements) { achievement in
@@ -122,7 +115,6 @@ struct AchievementRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            // Icon
             Text(achievement.icon)
                 .font(.custom("Digitalt", size: 32))
                 .frame(width: 50, height: 50)
@@ -135,7 +127,6 @@ struct AchievementRow: View {
                         .stroke(achievement.isUnlocked ? Color.green : Color.gray, lineWidth: 2)
                 )
             
-            // Content
             VStack(alignment: .leading, spacing: 5) {
                 Text(achievement.title)
                     .font(.custom("Digitalt", size: 18))
@@ -149,7 +140,6 @@ struct AchievementRow: View {
             
             Spacer()
             
-            // Status indicator
             if achievement.isUnlocked {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.custom("Digitalt", size: 20))
