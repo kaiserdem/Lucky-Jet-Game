@@ -5,6 +5,7 @@ import SwiftUI
 
 struct MenuView: View {
     @ObservedObject var gameModel: GameModel
+    @State private var showAchievements = false
     
     var body: some View {
         VStack(spacing: 30) {
@@ -47,6 +48,29 @@ struct MenuView: View {
                 .shadow(color: .blue, radius: 10)
             }
             
+            // Achievements button
+            Button(action: {
+                showAchievements = true
+            }) {
+                HStack {
+                    Image(systemName: "trophy.fill")
+                    Text("Achievements")
+                }
+                .font(.custom("Digitalt", size: 20))
+                .foregroundColor(.white)
+                .padding(.horizontal, 30)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.orange, .red]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(20)
+                .shadow(color: .orange, radius: 8)
+            }
+            
             // Statistics
             VStack(spacing: 15) {
                 Text("📊 Statistics")
@@ -83,6 +107,9 @@ struct MenuView: View {
             Spacer()
         }
         .padding()
+        .sheet(isPresented: $showAchievements) {
+            AchievementView(gameModel: gameModel)
+        }
     }
 }
 
