@@ -64,6 +64,7 @@ struct GameView: View {
                     JumpButton(
                         isEnabled: gameModel.isFlying,
                         onJump: {
+                            print("🦘 JUMP BUTTON PRESSED - isEnabled: \(gameModel.isFlying)")
                             gameModel.jump()
                         }
                     )
@@ -220,6 +221,7 @@ struct JumpButton: View {
         }
         .disabled(!isEnabled)
         .onAppear {
+            print("🦘 JumpButton appeared - isEnabled: \(isEnabled)")
             if isEnabled {
                 withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
                     buttonScale = 1.1
@@ -227,6 +229,7 @@ struct JumpButton: View {
             }
         }
         .onChange(of: isEnabled) { enabled in
+            print("🦘 JumpButton enabled changed to: \(enabled)")
             if enabled {
                 withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
                     buttonScale = 1.1

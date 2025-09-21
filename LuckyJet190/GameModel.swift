@@ -176,6 +176,7 @@ class GameModel: ObservableObject {
             isFlying = true
             jumpPressed = false
             explosionTime = Double.random(in: 5.0...maxFlightTime)
+            print("🎮 Base game, explosionTime: \(explosionTime), range: 5.0...\(maxFlightTime)")
             
             totalGames += 1
             saveStatistics()
@@ -201,7 +202,11 @@ class GameModel: ObservableObject {
     }
     
     func jump() {
-        guard gameState == .playing && isFlying else { return }
+        print("🎯 JUMP() CALLED - gameState: \(gameState), isFlying: \(isFlying)")
+        guard gameState == .playing && isFlying else { 
+            print("❌ Jump blocked - gameState: \(gameState), isFlying: \(isFlying)")
+            return 
+        }
         
         jumpPressed = true
         isFlying = false
@@ -258,9 +263,13 @@ class GameModel: ObservableObject {
         // Викликаємо анімацію стрибка
         performJumpAnimation()
         
-        // Запускаємо анімацію падіння після стрибка
-        print("🚀 Jump pressed, starting falling animation")
-        startFallingAnimation()
+        // Пілот успішно стрибнув - гра закінчується успішно
+        print("🚀 Jump successful!")
+        
+        // Завершуємо гру після успішного стрибка
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            self.endGame()
+        }
     }
     
     func endGame() {
@@ -329,40 +338,18 @@ class GameModel: ObservableObject {
         guard !isFalling else { return }
         isFalling = true
         
-        // Пілот падає за межі екрану з поточної позиції
-        let screenHeight = UIScreen.main.bounds.height
-        let basePosition = screenHeight * 0.3  // Базова позиція ракети
-        let currentScreenPosition = basePosition + pilotY  // Поточна позиція пілота на екрані
-        
-        // Розраховуємо відстань до падіння за межі екрану
-        let fallDistance = screenHeight - currentScreenPosition + 200
-        
-        // Плавна анімація падіння
-        withAnimation(.easeIn(duration: 1.5)) {
-            pilotY = pilotY + fallDistance
-            pilotRotation = pilotRotation + 720
-        }
+        // Пілот залишається на ракеті - нічого не відбувається
+        // Тільки підготовка до вибуху
+        print("🎬 Pilot stays on rocket, preparing for explosion")
     }
     
     func performExplosionAnimation() {
-        // Пілот продовжує плавно падати за межі екрану з поточної позиції
-        let screenHeight = UIScreen.main.bounds.height
-        let basePosition = screenHeight * 0.3  // Базова позиція ракети
-        let currentScreenPosition = basePosition + pilotY  // Поточна позиція пілота на екрані
+        // Пілот залишається на ракеті - нічого не відбувається з пілотом
+        // Тільки анімація вибуху (червоні елементи)
+        print("💥 Explosion animation - pilot stays on rocket")
         
-        // Розраховуємо додаткову відстань для падіння за межі екрану
-        let explosionDistance = screenHeight - currentScreenPosition + 100
-        
-        // Плавна анімація продовження падіння
-        withAnimation(.easeIn(duration: 2.0)) {
-            pilotY = pilotY + explosionDistance
-            pilotRotation = pilotRotation + 360
-        }
-        
-        // Ракета вибухає (тільки обертання)
-        withAnimation(.easeIn(duration: 2.0)) {
-            rocketRotation = rocketRotation + 720
-        }
+        // TODO: Додати анімацію червоних елементів вибуху
+        // Поки що просто логуємо
     }
     
     func goToLevelSelection() {
@@ -382,6 +369,7 @@ class GameModel: ObservableObject {
         
         // Використовуємо налаштування рівня
         explosionTime = Double.random(in: level.explosionTimeRange)
+        print("🎮 Level: \(level.title), explosionTime: \(explosionTime), range: \(level.explosionTimeRange)")
         
         totalGames += 1
         saveStatistics()
@@ -749,10 +737,10 @@ class GameModel: ObservableObject {
             Level(id: "easy_3", title: "Easy 3", description: "Build your confidence", icon: "🛸", difficulty: .easy, requiredScore: 200, explosionTimeRange: 3.0...6.0, maxFlightTime: 9.0),
             
             // Medium Levels
-            Level(id: "medium_1", title: "Medium 1", description: "Navigate through challenges", icon: "✈️", difficulty: .medium, requiredScore: 300, explosionTimeRange: 2.0...5.0, maxFlightTime: 8.5),
-            Level(id: "medium_2", title: "Medium 2", description: "Master the cosmos", icon: "🌌", difficulty: .medium, requiredScore: 500, explosionTimeRange: 1.5...4.0, maxFlightTime: 8.0),
-            Level(id: "medium_3", title: "Medium 3", description: "Explore the stars", icon: "⭐", difficulty: .medium, requiredScore: 700, explosionTimeRange: 1.0...3.5, maxFlightTime: 7.5),
-            Level(id: "medium_4", title: "Medium 4", description: "Advanced space navigation", icon: "🛰️", difficulty: .medium, requiredScore: 900, explosionTimeRange: 0.8...3.0, maxFlightTime: 7.0),
+            Level(id: "medium_1", title: "Medium 1", description: "Navigate through challenges", icon: "✈️", difficulty: .medium, requiredScore: 300, explosionTimeRange: 3.0...6.0, maxFlightTime: 8.5),
+            Level(id: "medium_2", title: "Medium 2", description: "Master the cosmos", icon: "🌌", difficulty: .medium, requiredScore: 500, explosionTimeRange: 2.5...5.0, maxFlightTime: 8.0),
+            Level(id: "medium_3", title: "Medium 3", description: "Explore the stars", icon: "⭐", difficulty: .medium, requiredScore: 700, explosionTimeRange: 2.0...4.0, maxFlightTime: 7.5),
+            Level(id: "medium_4", title: "Medium 4", description: "Advanced space navigation", icon: "🛰️", difficulty: .medium, requiredScore: 900, explosionTimeRange: 1.5...3.5, maxFlightTime: 7.0),
             
             // Hard Levels
             Level(id: "hard_1", title: "Hard 1", description: "Prove your skills", icon: "🎯", difficulty: .hard, requiredScore: 1000, explosionTimeRange: 0.5...3.0, maxFlightTime: 7.0),
