@@ -865,9 +865,9 @@ class GameModel: ObservableObject {
         // Викликаємо анімацію вибуху
         performExplosionAnimation()
         
-        // Анімація вибуху триває 2 секунди
+        // Анімація вибуху триває 3 секунди (повільніша)
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
-            self.animationProgress += 0.016 / 2.0
+            self.animationProgress += 0.016 / 3.0
             
             if self.animationProgress >= 1.0 {
                 timer.invalidate()

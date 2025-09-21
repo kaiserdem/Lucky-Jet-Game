@@ -260,23 +260,31 @@ struct ExplosionEffect: View {
     }
     
     private func createExplosion() {
-        particles = (0..<20).map { _ in
+        particles = (0..<1920).map { _ in
             Particle(
                 position: CGPoint(
-                    x: CGFloat.random(in: -50...50),
-                    y: CGFloat.random(in: -50...50)
+                    x: CGFloat.random(in: -20...20),
+                    y: CGFloat.random(in: -20...20)
                 ),
-                color: [Color.red, Color.orange, Color.yellow].randomElement() ?? .red,
-                size: CGFloat.random(in: 5...15),
-                opacity: Double.random(in: 0.5...1.0)
+                color: Color.red, // Тільки червоні частинки
+                size: CGFloat.random(in: 6...15),
+                opacity: Double.random(in: 0.8...1.0)
             )
         }
         
-        // Анімація частинок
-        withAnimation(.easeOut(duration: 1.0)) {
+        // Повільніша анімація частинок з розлітанням по всім сторонам
+        withAnimation(.linear(duration: 4.5)) {
             for i in particles.indices {
-                particles[i].position.x += CGFloat.random(in: -100...100)
-                particles[i].position.y += CGFloat.random(in: -100...100)
+                // Розраховуємо кут для рівномірного розподілу по всім сторонам
+                let angle = Double(i) * (2 * Double.pi / Double(particles.count))
+                let distance: CGFloat = CGFloat.random(in: 50...3750)
+                
+                // Розлітання по всім сторонам від центру
+                let newX = cos(angle) * distance
+                let newY = sin(angle) * distance
+                
+                particles[i].position.x = newX
+                particles[i].position.y = newY
                 particles[i].opacity = 0
             }
         }
